@@ -1,0 +1,10 @@
+\BOOKMARK [1][-]{section*.2}{Introduction}{}% 1
+\BOOKMARK [1][-]{section*.4}{Reinforcement Learning Framework and Benefits}{}% 2
+\BOOKMARK [2][-]{section*.5}{Implementation Concept of Operations}{section*.4}% 3
+\BOOKMARK [2][-]{section*.6}{Issues for Spacecraft Reinforcement Learning}{section*.4}% 4
+\BOOKMARK [1][-]{section*.8}{Problem Description}{}% 5
+\BOOKMARK [2][-]{section*.9}{Simplified Aerobraking Problem}{section*.8}% 6
+\BOOKMARK [2][-]{section*.10}{Discretization Approach}{section*.8}% 7
+\BOOKMARK [2][-]{section*.11}{Reward Function Definition}{section*.8}% 8
+\BOOKMARK [1][-]{section*.13}{Sample Learning Methodology}{}% 9
+\BOOKMARK [1][-]{section*.15}{Conclusions and Future Work}{}% 10

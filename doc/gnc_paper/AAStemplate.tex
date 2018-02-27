@@ -1,0 +1,213 @@
+% use paper, or submit
+% use 10pt, 11pt or 12pt
+% nopagenum removes the page numbers (final conference PDF paper)
+
+%\documentclass[preprint, paper,11pt]{AAS}	% for preprint proceedings
+\documentclass[paper,11pt]{AAS}		% for final proceedings (20-page limit)
+%\documentclass[paper,12pt]{AAS}		% for final proceedings (20-page limit)
+%\documentclass[paper,10pt]{AAS}		% for final proceedings (20-page limit)
+%\documentclass[cover, article,11pt]{AAS}		% for journal paper version
+%\documentclass[submit]{AAS}					% to submit to JAS
+
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{subfigure}
+%\usepackage[notref,notcite]{showkeys}  % use this to temporarily show labels
+\usepackage[colorlinks=true, pdfstartview=FitV, linkcolor= black, citecolor= black, urlcolor= black]{hyperref}
+\usepackage{overcite}
+
+
+\usepackage{color}
+\usepackage[normalem]{ulem} % added this to enable sout for strike outs
+
+
+
+\definecolor{RED}{rgb}{1,0,0} 
+\definecolor{BLUE}{rgb}{0,0,1} 
+\definecolor{GREEN}{rgb}{0,0,1} 
+\newcommand{\EditHPS}[1]{{\color{red} #1}}
+\newcommand{\EditHPSd}[1]{{\color{red} \sout{ #1}}}
+\newcommand{\EditEH}[1]{{\color{blue} #1}}
+\newcommand{\EditEHd}[1]{{\color{blue} \sout{ #1}}}
+
+
+\PaperNumber{10-XXX}
+\CoverFigure{Figures/test} % Optional:  provide the path to the cover figure
+\Conference{AAS/AIAA Astrodynamics Specialists Conference}
+\ConferenceLocation{Honolulu, Hawaii}
+\ConferenceDate{August 18--21, 2008}
+% The following macros are used for the simulated journal article mode
+\JournalName{Journal of the Astronautical Sciences}
+\JournalIssue{Vol.~XX, No.~XX, XX--XX, XXXX, Pages XXX-XXX}
+\JournalAuthors{Schaub}		% simulated article, authors in header
+\JournalTitle{abcd}			% simulated article, brief title in header
+
+
+
+\begin{document}
+
+
+\title{PAPER TITLE (UP TO 6 INCHES IN WIDTH AND CENTERED, 14 POINT BOLD FONT, MAJUSCULE)}
+
+\author{John Doe\thanks{title, department, affiliation, address.},  
+Jane Roe\thanks{title, department, affiliation, address.} 
+\ and J. Q. Public\thanks{title, department, affiliation, address.}
+}
+
+
+\maketitle{} 		
+
+
+\begin{abstract}
+The abstract should briefly state the purpose of the manuscript, the problem to be addressed, the approach taken, and the nature of results or conclusions that can be expected. It should stand independently and tell enough about the manu-script to permit the reader to decide whether the subject is of specific interest. The abstract shall be typed single space, justified, centered, and with a column width of 4.5 inches (114 mm). It is not preceded by a heading of "Abstract", and its length may not extend beyond the first page.
+\end{abstract}
+
+
+
+
+
+
+
+
+\section{Introduction}
+The American Astronautical Society (AAS) publishes bound sets of printed conference pro-ceedings for personal, institutional, and library usage. The availability of hardcopy enhances the longevity of your conference work and elevates the importance of your conference contribution. To preserve consistency in the final printed proceedings, all authors shall adhere to the AAS con-ference proceedings format.
+
+This document is intended to serve as a visual and instructional guide, and as a \LaTeX document template, for the AAS conference proceedings format. This template provides the basic font sizes, styles, and margins required by the publisher's formatting instructions.   There are also styles for centered equations, figure and table captions, section and sub-section headings, footnote text, etc. This template provides samples of their usage.  To use this document as a template, simply copy and change its contents with your own information while maintaining the required predefined style, rather than starting anew. Since this is not a tutorial on how to use \LaTeX, refer to \LaTeX manuals for more information.
+
+
+
+
+
+
+\section{Format Specifications}
+Some AAS meetings are co-sponsored with the American Institute of Aeronautics and Astro-nautics (AIAA). Whenever the paper number starts with "AAS", or when the conference is de-scribed as a joint "AAS/AIAA" meeting with the AAS listed first, this AAS conference proceed-ings format shall be used.
+
+The manuscript should include a paper number, a title, an author listing, an abstract, an intro-ductory section, one or more sections containing the main body of the manuscript, a concluding summary section, and a reference or bibliography section. It may also include a section on nota-tion, acknowledgements, and appendices, as illustrated in the sequel. If your sponsor requires a distribution or copyright statement, it should be added as a footnote to the title of the manuscript, appearing on the first page only.
+
+The recommended sans-serif font for paper number, title, and author listing is \emph{Arial}, or, \emph{Helvetica}. The title font and paper-number font should be the same: 14-point sans-serif, centered, and bold. The author-listing font should be 12-point sans-serif, centered, and bold. The recom-mended serif font for body text and headings is \emph{Times} or \emph{Times New Roman} at 10-12 point. The captions for figures and tables are 10-point serif font. The endnote reference text and footnote text is 9-point serif font. The right-hand margin of text should be justified; if not, it should neverthe-less be fairly even. Copy should be single space with double space between paragraphs, with the first line of each paragraph indented 0.2 inches. Note that these recommendations will be auto-matically implemented in \LaTeX when the predefined styles of this template are used. %Use of the automated hyphenation setting is highly recommended.
+
+The body text of this template is based on a preferred font size of 11 points. To change this to 12-point size, increase the font size at the top of the \LaTeX template by uncommenting the appropriate {\tt documentclass[]\{\}} line.   For very long manuscripts, a 10-point font may be used to keep the manuscript within the publisher’s limit of twenty (20) physical pages.
+
+
+
+
+
+\subsection{Proceedings Submissions}
+The Portable Document Format (PDF) is the preferred format for electronic submissions. The page size should be 8.5 inches by 11 inches. You should use "press-quality" or "high-quality" software settings to create your PDF file. These settings tend to keep the PDF true to the original manuscript layout, and automatically embed the correct fonts, etc. Otherwise, settings such as "Embed All Fonts", etc., should be selected as necessary.
+
+Internal links within PDFs may not be available in the final version of the electronic proceed-ings, so their use is not encouraged. A leading cover sheet should \emph{not} be included as part of the electronic upload. Page numbers should be centered at the bottom of each page, halfway between the lower margin and the bottom of the page (i.e., approximately 0.75 inches).
+
+\subsection{Journal Submission}
+If you wish to submit this manuscript to the \emph{Journal of Astronautical Sciences}, it must be re-formatted into a double-spaced format. This can be done easily with this template. At the top of the document, there are 2 types document class statements ({\tt paper} and {\tt submit}).  The first one is the one to use for a conference paper.  The second one, which is commented out, can be used to reformat the paper for the JAS journal submission.
+
+
+\section{This is a Sample of a General Section Heading}
+Numbering of section headings and paragraphs should be avoided. Major section headings are majuscule, bold, flush (aligned) left, and use the same style san-serif font as the body text. Widow and orphan lines should be avoided; more than one line of a paragraph should appear at the end or beginning of a page, not one line by itself. A heading should not appear at the bottom of a page without at least two lines of text. Equations, figures, and tables must be sequentially numbered with no repeated numbers or gaps.
+
+\subsection{This is a Sample of a Secondary (Sub-Section) Heading}
+Secondary, or sub-section, headings are title case (miniscule lettering with the first letter of major words majuscule); they are flush left, and bold. Secondary headings use the same serif font style as the body text and, like section headings, should not be numbered. Tertiary headings should be avoided, but if necessary, they are run-in, italic, and end in a period, as illustrated with the next five (5) paragraphs.
+
+
+
+\subsubsection{Equations.} 
+Equations are centered with the equation number flush to the right. In the text, these equations should be referenced by name as Eq.~\eqref{eq:ab} or Equation~\eqref{eq:ab} (e.g., not eq.  1, (1), or Equation 1).
+\begin{equation}
+	\label{eq:ab}
+	a = b^{2}
+\end{equation}
+
+
+\subsubsection{Abbreviations.} 
+When abbreviations for units of measure are used, lower case without periods is preferred in most instances; e.g. ft, yd, sec, ft/sec, etc., but in. for inch.
+
+
+\begin{figure}[htb]
+	\centering\includegraphics[width=3.5in]{Figures/test}
+	\caption{Illustration Caption Goes Here.}
+	\label{fig:xxx}
+\end{figure}
+
+\subsubsection{Figures.}   
+Illustrations are referred to by name in the text as Figure~\ref{fig:xxx}, Figure 2, etc., or, Figures 3 and 4 (e.g., not figure 1, Fig. 1, or \emph{Figure} 1). Captions are in title case (miniscule lettering with the first letter of major words majuscule); they are 10-point serif font and centered below the figure as shown in Figure~\ref{fig:xxx}. Each illustration should have a caption unless it is a mere sketch. An explanatory caption of several sentences is permissible. Each included illustration must be called out (mentioned) in the text. Ideally, figures should appear within the text just before they are called out. It is also permissible to place all illustrations together at the end of the text as an ap-pendix. Illustrations should be reduced to a suitable size (usually about one-half or one-quarter page size) and placed where they belong in the text. All illustrations appear as black and white in the final printing, although colors are retained in the electronic (CD-ROM) version. Callouts within any illustration must be legible after reduction.
+
+\subsubsection{Graphic Formats.} 
+The highest quality formats are Encapsulated PostScript (EPS) and PDF vector-graphics formats. These formats are recommended for all illustrations, unless they create files that are excessively large. Specifically, you should change the graphics format or compress the image resolution whenever an embedded graphic takes more than two seconds to render onscreen, or, whenever the manuscript file size starts to approach a total of 5 Mb.  Photographs, illustrations that use heavy toner/ink (such as bar graphs), and figures without text callouts, may be suitably displayed with picture formats such as EPS, PDF, JPEG, TIFF, etc., but line drawings, plots, and callouts on illustrations, should not use picture formats that do not provide clear reproduction. All graphical content must be embedded / included when creating a PDF document, including any fonts used within the illustration. Note that the Windows Metafile Format (WMF) is sometimes problematic and it should be avoided.
+
+
+\subsubsection{References and Citations.} 
+The citation of bibliographical references is indicated in the text by superscripted Arabic numerals, preferably at the end of a sentence.\cite{doe2005, style1959}    If this causes confusion in mathematics, or if a superscript is not appropriate for other reasons, this can be alternately expressed as (Reference~\citenum{doe2005}), (e.g., not [1]). While there is no singly preferred format for every bibliographic reference, all references should be consistent in form and citations should be complete enough to allow the reader to find the information being cited, including specific pages, edition numbers, and printings where necessary. URL citations are discouraged, especially when an archival source for the same information is available. If an URL is required, it should appear completely and as a footnote instead of a bibliographical reference.\footnote{http://www.univelt.com/paperformats/}  The citation of personal correspondence is especially discouraged, but if required it should include the year, position, professional affiliation, and location of the person being referenced as a footnote.\footnote{Gangster, Maurice (2008), personal correspondence. Sr. Consultant, Space Cowboy Associates, Inc., Colorado Springs, CO.} 
+
+References listed at the end of the paper are indicated in the text by a superscript Arabic number.\cite{doe2005, style1959} If this causes confusion in mathematics or if a superscript is not appropriate for other reasons, this can be expressed as (Ref.~\citenum{doe2005}).  
+
+\emph{Tables:} 
+Tables are referred to by name in the text as Table 1, or, Tables 2 and 3 (e.g., not table 1, Tbl. 1, or \emph{Table} 1). The title is centered above the table, as shown in Table~\ref{tab:label}. \footnote{Note that table units are in parentheses. The footnote symbols provided are a standard sequence: $\ast$, $\dagger$, $\ddag$, etc. This sequence of footnote symbols should restart with each page.}  The minimum number of lines needed for clarity is desired. The table font may be adjusted smaller than the body text as necessary.
+
+
+\begin{table}[htbp]
+    \caption{A Caption Goes Here}
+   \label{tab:label}
+        \centering \fontsize{10}{10}\selectfont
+   \begin{tabular}{c | r | r } % Column formatting, 
+      \hline 
+      Animal    & Description & Price (\$)\\
+      \hline 
+      Gnat      & per gram & 13.65 \\
+                & each     &  0.01 \\
+      Gnu       & stuffed  & 92.50 \\
+      Emu       & stuffed  & 33.33 \\
+      Armadillo & frozen   &  8.99 \\
+      \hline
+   \end{tabular}
+\end{table}
+
+
+Equations, figures, and tables must be sequentially numbered with no repeated numbers or gaps. Each figure and table shall be called out (mentioned) in the text. Equations may be num-bered without being called out.
+
+
+
+
+
+
+
+
+
+\section{Conclusion}
+The final manuscript should be camera-ready as submitted—free from technical, typographi-cal, and formatting errors. To avoid formatting errors, you should use the most recent version of this document template. Manuscripts not suitable for publication are omitted from the final pro-ceedings.
+
+
+
+\section{Acknowledgment}
+Any acknowledgment which the author or authors wish to make may appear here. 
+
+
+
+
+
+
+
+\section{Notation}
+If mathematical symbols require definition, a table of notation should appear here. A footnote near the beginning of the paper where mathematics is introduced should direct attention of the reader to this table.
+
+
+
+
+\bibliographystyle{AAS_publication}   % Number the references.
+\bibliography{references}   % Use references.bib to resolve the labels.
+
+
+
+
+
+\appendix
+\section*{Appendix: Title here}
+Each appendix is its own section with its own section heading. The title of each appendix sec-tion is preceded by "APPENDIX: " as illustrated above. Appendices normally go after references. However, appendices may go ahead of the references section whenever the word processor forces superscripted endnotes to the very end of the document.
+
+\subsection*{Format Dimensions}
+The page size shall be the American standard of 8.5 inches x 11 inches (216 mm x 279 mm). Margins are as follows: Top—0.75 inch (19 mm); Bottom—1.5 inches (38 mm); Left—1.25 inches (32 mm); Right—1.25 inch (32 mm). The title of the manuscript starts one inch (2.54 cm) below the top margin. Column width is 6 inches (15.25 cm) and column length is 8.75 inches (22.25 cm). The abstract is 4.5 inches in width, centered, justified, 10 point normal (serif) font.
+
+
+
+
+
+
+\end{document}

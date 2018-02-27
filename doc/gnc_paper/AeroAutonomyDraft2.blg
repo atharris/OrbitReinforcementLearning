@@ -1,0 +1,58 @@
+This is BibTeX, Version 0.99d (TeX Live 2015/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: AeroAutonomyDraft2.aux
+The style file: AAS_publication.bst
+Database file #1: revisedFinal.bib.bib
+Repeated entry---line 674 of file revisedFinal.bib.bib
+ : @article{Long2008
+ :                  ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 752 of file revisedFinal.bib.bib
+ : @article{Sutton2008
+ :                    ,
+I'm skipping whatever remains of this entry
+Warning--empty journal in Pecheur2000
+Warning--empty journal in Cianciolo2018
+Warning--empty journal in Sutton2008
+You've used 15 entries,
+            1928 wiz_defined-function locations,
+            591 strings with 6396 characters,
+and the built_in function-call counts, 3983 in all, are:
+= -- 385
+> -- 162
+< -- 0
++ -- 61
+- -- 46
+* -- 298
+:= -- 581
+add.period$ -- 16
+call.type$ -- 15
+change.case$ -- 1
+chr.to.int$ -- 0
+cite$ -- 18
+duplicate$ -- 203
+empty$ -- 379
+format.name$ -- 46
+if$ -- 967
+int.to.chr$ -- 0
+int.to.str$ -- 15
+missing$ -- 16
+newline$ -- 49
+num.names$ -- 15
+pop$ -- 48
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 128
+stack$ -- 0
+substring$ -- 245
+swap$ -- 80
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 3
+while$ -- 45
+width$ -- 17
+write$ -- 143
+(There were 2 error messages)

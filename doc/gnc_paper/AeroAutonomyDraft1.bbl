@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{Vallado2013}
+D.~A. Vallado, {\em {Fundamentals of Astrodynamcs and Applications}}.
+\newblock Space Technology Library, 4th~ed., 2013.
+
+\bibitem{Long2008}
+S.~Long, T.-H. You, C.~Halsell, R.~Bhat, S.~Demcak, E.~Graat, E.~Higa,
+  D.~Highsmith, N.~Mottinger, and M.~Jah, ``{Mars reconnaissance orbiter
+  aerobraking navigation operation},''  {\em SpaceOps 2008 Conference},
+  No.~808, 2008, pp.~1--16, 10.2514/6.2008-3349.
+
+\bibitem{Sutton2008}
+E.~Sutton, ``{Effects of Solar Disturbances on the Thermosphere Densities and
+  Winds from CHAMP and GRACE Satellite Accelerometer Data},''  2008, p.~149.
+
+\bibitem{Sutton2012}
+R.~S. Sutton and A.~G. Barto, ``{Reinforcement learning},''  {\em Learning},
+  Vol.~3, No.~9, 2012, p.~322, 10.1109/MED.2013.6608833.
+
+\end{thebibliography}

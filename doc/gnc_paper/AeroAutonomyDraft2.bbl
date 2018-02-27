@@ -1,0 +1,76 @@
+\begin{thebibliography}{10}
+
+\bibitem{Pecheur2000}
+C.~Pecheur, ``{Verification and validation of autonomy software at NASA},''
+  No.~August, 2000, pp.~1--17.
+
+\bibitem{Starek2016}
+J.~A. Starek, B.~A{\c{c}}ıkmeşe, I.~A. Nesnas, and M.~Pavone, ``{Spacecraft
+  autonomy challenges for next-generation space missions},''  {\em Lecture
+  Notes in Control and Information Sciences}, Vol.~460, 2016, pp.~1--39,
+  10.1007/978-3-662-47694-9_1.
+
+\bibitem{Long2008}
+S.~M. Long, T.-H. You, C.~A. Halsell, R.~S. Bhat, S.~W. Demcak, E.~J. Graat,
+  E.~S. Higa, D.~E. Highsmith, N.~A. Mottinger, and M.~K. Jah, ``{Mars
+  reconnaissance orbiter aerobraking navigation operation},''  {\em SpaceOps
+  2008 Conference}, No.~808, 2008, pp.~1--16, 10.2514/6.2008-3349.
+
+\bibitem{Spencer2007}
+D.~A. Spencer and R.~Tolson, ``{Aerobraking Cost and Risk Decisions},''  {\em
+  Journal of Spacecraft and Rockets}, Vol.~44, No.~6, 2007, pp.~1285--1293,
+  10.2514/1.24303.
+
+\bibitem{Cianciolo2018}
+A.~D. Cianciolo, R.~W. Maddock, J.~L. Prince, A.~Bowes, R.~W. Powell, J.~P.
+  White, R.~Tolson, O.~Shaughnessy, and D.~Carrelli, ``{( Preprint ) AAS 13-736
+  AUTONOMOUS AEROBRAKI NG DEVELOPMENT SOFTW ARE : PHASE 2 SUMMARY},''  2018,
+  pp.~1--16.
+
+\bibitem{Andrade2018}
+L.~G. Andrade, ``{Skimming through Saturn's Atmosphere: The Climax of the
+  Cassini Grand Finale Mission},''  {\em 2018 AIAA Guidance, Navigation, and
+  Control Conference}, No.~January, 2018, pp.~1--21, 10.2514/6.2018-2111.
+
+\bibitem{Frost2010}
+C.~R. Frost, ``{Challenges and Opportunities for Autonomous Systems in
+  Space},''  {\em National Academy of Engineering's U.S. Frontiers of
+  Engineering Symposium}, 2010.
+
+\bibitem{Cassandra1997}
+A.~R. Cassandra, ``{A Survey of POMDP Applications},''  {\em Uncertainty in
+  Artificial Intelligence}, 1997, pp.~472--480.
+
+\bibitem{Sutton2012}
+R.~S. Sutton and A.~G. Barto, ``{Reinforcement learning},''  {\em Learning},
+  Vol.~3, No.~9, 2012, p.~322, 10.1109/MED.2013.6608833.
+
+\bibitem{Alcorn2016}
+J.~Alcorn, H.~Schaub, S.~Piggott, and D.~Kubitschek, ``{Simulating Attitude
+  Actuation Options Using the Basilisk Astrodynamics Software Architecture},''
+  {\em 67 th International Astronautical Congress}, 2016.
+
+\bibitem{Smart2000}
+W.~D. Smart and L.~P. Kaelbling, ``{Practical Reinforcement Learning in
+  Continuous Spaces},''  {\em Proceedings of the Seventeenth International
+  Conference on Machine Learning}, 2000, pp.~903--910.
+
+\bibitem{Abbeel2007}
+P.~Abbeel, A.~Coates, M.~Quigley, and A.~Y. Ng, ``{An application of
+  reinforcement learning to aerobatic helicopter flight},''  {\em Education},
+  Vol.~19, 2007, p.~1.
+
+\bibitem{Foster2016}
+C.~Foster, H.~Hallam, and J.~Mason, ``{Orbit determination and
+  differential-drag control of Planet Labs cubesat constellations},''  {\em
+  Advances in the Astronautical Sciences}, Vol.~156, 2016, pp.~645--657.
+
+\bibitem{Vallado2013}
+D.~A. Vallado, {\em {Fundamentals of Astrodynamcs and Applications}}.
+\newblock Space Technology Library, 4th~ed., 2013.
+
+\bibitem{Sutton2008}
+E.~Sutton, ``{Effects of Solar Disturbances on the Thermosphere Densities and
+  Winds from CHAMP and GRACE Satellite Accelerometer Data},''  2008, p.~149.
+
+\end{thebibliography}
