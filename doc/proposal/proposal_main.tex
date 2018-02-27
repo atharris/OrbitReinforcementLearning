@@ -14,12 +14,60 @@
 
 \section{Background}
 
+The high cost of space mission operations has motivated several space agencies to prioritize the development of ``autonomous'' spacecraft control techniques \cite{Pecheur2000}. Of particular note are on-board autonomy techniques, which serve to expand spacecraft capabilities in environments where ground contact is not possible. While these techniques offer considerable promise, concerns remain regarding a variety of factors surrounding their implementation, such as the cost of developing such systems and their tolerance for un-modeled behaviors\cite{Starek2016}. Many of these issues are addressed in other fields through the application of machine learning (ML) techniques, which can provide autonomous systems with the ability to learn from and adapt to their environments without human intervention. These techniques, coupled with high-fidelity simulation tools, are a potential avenue for reshaping the manner in which flight systems are developed and fielded. 
+
+
 \section{Machine Learning Focus}
 
+This project topic is primarily motivated by our group's interest in understanding reinforcement learning techniques and their application to problems in aerospace. However, the broad scope of the topic can include other aspects of machine learning, such as classification and inference, if time allows. 
+
+Reinforcement learning is broadly defined as a class of machine learning techniques that maximize the earned reward of a software agent that interacts with a given environment. 
+
 \section{Problem Statement}
+At present, we propose parameterizing the spacecraft mode-control problem in the following manner. 
+
+\subsection{State Description}
+\textbf{Environment States}
+
+\begin{enumerate}
+	\item Spacecraft Position:
+	\item Spacecraft Velocity:
+	\item Reference Position:
+	\item Reference Velocity:
+	\item Spacecraft Error Indicator:
+\end{enumerate}
+
+\textbf{On-Board States}
+\begin{enumerate}
+	\item Position Estimate
+	\item Velocity Estimate
+	\item Position Error
+	\item Velocity Error
+\end{enumerate}
+
+\subsection{Action Model}
+This project considers a spacecraft with the following operational modes:
+\begin{enumerate}
+	\item \textbf{Orbit Determination:} In this mode, the spacecraft uses its sensors to reduce the error in its estimate of its orbit. However, perturbing forces such as solar radiation pressure will drive it away from its desired trajectory.
+	
+	\item \textbf{Orbit Control:} In this mode, the spacecraft uses thrusters to command its current state estimate towards its desired trajectory. We model this as bringing the current state-desired error towards the state-estimate error. 
+	
+	\item \textbf{Mission Maneuver}: In this mode, the spacecraft conducts a large burn to enter a transfer trajectory or insert itself in an orbit around a planet. 
+	
+	\item \textbf{Science Operations:} In this mode, the spacecraft collects a reward proportional to its state error. However, both its orbit determination and orbit control errors increase with time.
+	
+	\item \textbf{Safe Mode:} if the spacecraft enters an error state (i.e., if the error state variable is 1), entering this mode will reset the error state to 0. No other behavior occurs. 
+\end{enumerate}
 
 \section{Proposed Work Plan}
 
-
+The work for this project is envisioned to proceed as follows:
+\begin{enumerate}
+	\item Paramtereize the spacecraft mode control problem.
+	\item Develop an environment model for this problem within the Partially-Observable Markov Decision Process framework
+	\item Implement a ``naive'' reinforcement learning approach.
+	\item Implement more complex reinforcement learning approaches.
+\end{enumerate}
+	
 
 \end{document}
