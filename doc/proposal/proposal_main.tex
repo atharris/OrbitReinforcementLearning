@@ -1,6 +1,10 @@
 \documentclass[]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{multicol}
+
+\geometry{letterpaper, portrait, margin=1in}
 
 %opening
 \title{Project Proposal: Reinforcement Learning for Spacecraft Mode Control}
@@ -22,13 +26,14 @@ Currently, Bayesian estimation is the de facto method used for autonomy. By obta
 
 \section{Machine Learning Focus}
 
-This project topic is primarily motivated by our group's interest in understanding reinforcement learning techniques and their application to problems in aerospace. However, the broad scope of the topic can include other aspects of machine learning, such as classification and inference, if time allows. 
+This project topic is primarily motivated by our group's interest in understanding reinforcement learning techniques and their application to problems in aerospace. However, the scope of the problem at hand includes the possibility of adding inference or classification as additional tasks.
 
-Reinforcement learning is broadly defined as a class of machine learning techniques that maximize the earned reward of a software agent that interacts with a given environment. 
+Reinforcement learning is broadly defined as a class of machine learning techniques that maximize the earned reward of a software agent that interacts with a given environment. Through the project scope, we intend to explore the space of both different simulation environments (linear vs. nonlinear models, selection of parameters to model in an environment) and various learning algorithms (model-based vs. model free, Q-learning methods, ``deep'' reinforcement learning methods). 
 
 \section{Problem Statement}
-At present, we propose parameterizing the spacecraft mode-control problem in the following manner. 
+The system we are attempting to control with reinforcement learning consists of a single spacecraft attempting to enter and maintain an orbit about a planet in deep space. At a high level, this consists of a pair of orbit-entry burns, science operations, and minor corrective impulses periodically to counteract the affect of un-modeled dynamics. It is assumed that the spacecraft has states in which it can conduct the low-level maths required to accomplish these aims; the goal of our software agent is to command the spacecraft to enter the correct mode under the correct circumstances. 
 
+\begin{multicols}{2}
 \subsection{State Description}
 \textbf{Environment States}
 
@@ -46,6 +51,7 @@ At present, we propose parameterizing the spacecraft mode-control problem in the
 	\item State Estimate: $\mathbf{\hat{X}} \in \mathbb{R}^6$
 	\item State Error: $\mathbf{x} \in \mathbb{R}^6$
 \end{enumerate}
+\end{multicols}
 
 \subsection{Action Model}
 This project considers a spacecraft with the following operational modes:
@@ -65,10 +71,13 @@ This project considers a spacecraft with the following operational modes:
 
 The work for this project is envisioned to proceed as follows:
 \begin{enumerate}
-	\item Parametereize the spacecraft mode control problem.
-	\item Develop an environment model for this problem within the Partially-Observable Markov Decision Process framework
-	\item Implement a ``naive'' reinforcement learning approach.
-	\item Implement more complex reinforcement learning approaches.
+	\item \textbf{Linear System:} Consider error states that grow and shrink linearly with time, a reasonable approximation for many spacecraft problems. Attempt 2-3 learning strategies on the linear model.
+	\begin{enumerate}
+		\item Model Implementation: Write the models to implement a linear environment. Wrap these models in a manner suitable for reinforcement learning.
+		\item Model-Free Learning: Implement time-difference Q-learning for the system.
+		\item Model-Based Maximum Likelihood methods: Implement a maximum-likelihood learning method, such as \textit{Dyna} (suggested by Kochenderfer \cite{bibid})
+	\end{enumerate}
+	\item \textbf{Nonlinear System:} Apply the learned linear models to a ``true'' nonlinear system and examine their performance. Attempt to apply learning techniques to the nonlinear system.
 \end{enumerate}
 	
 
