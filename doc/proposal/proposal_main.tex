@@ -1,4 +1,6 @@
 \documentclass[]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
 %opening
 \title{Project Proposal: Reinforcement Learning for Spacecraft Mode Control}
@@ -16,6 +18,7 @@
 
 The high cost of space mission operations has motivated several space agencies to prioritize the development of ``autonomous'' spacecraft control techniques \cite{Pecheur2000}. Of particular note are on-board autonomy techniques, which serve to expand spacecraft capabilities in environments where ground contact is not possible. While these techniques offer considerable promise, concerns remain regarding a variety of factors surrounding their implementation, such as the cost of developing such systems and their tolerance for un-modeled behaviors\cite{Starek2016}. Many of these issues are addressed in other fields through the application of machine learning (ML) techniques, which can provide autonomous systems with the ability to learn from and adapt to their environments without human intervention. These techniques, coupled with high-fidelity simulation tools, are a potential avenue for reshaping the manner in which flight systems are developed and fielded. 
 
+Currently, Bayesian estimation is the de facto method used for autonomy. By obtaining the maximum likelihood estimate of a spacecrafts states given a set of measurements, Kalman Filters provide an optimal solution for guidance. Although this is a robust solution, these filters often fall short when it comes to fault detection. They also demand expertise when being developed, modified, or maintained. Reinforced learning methods solve the optimization problem in a new and scarcely used way. The reason for their lack of popularity in the space sector is that data is not plentiful, whereas ML techniques rely on the abundance of data. Yet, with improved simulation methods, runs can now be generated swiftly and with high fidelity, hence yielding the data needed for reinforced learning. 
 
 \section{Machine Learning Focus}
 
@@ -30,19 +33,18 @@ At present, we propose parameterizing the spacecraft mode-control problem in the
 \textbf{Environment States}
 
 \begin{enumerate}
-	\item Spacecraft Position:
-	\item Spacecraft Velocity:
-	\item Reference Position:
-	\item Reference Velocity:
-	\item Spacecraft Error Indicator:
+	\item Spacecraft Position: $\mathbf{r} \in \mathbb{R}^3$
+	\item Spacecraft Velocity: $\mathbf{v} \in \mathbb{R}^3$
+	\item Reference Position: $\mathbf{r_0} \in \mathbb{R}^3$
+	\item Reference Velocity: $\mathbf{v_0} \in \mathbb{R}^3$
+	\item Spacecraft Error Indicator: $E \in \{0,1\}$
 \end{enumerate}
 
 \textbf{On-Board States}
 \begin{enumerate}
-	\item Position Estimate
-	\item Velocity Estimate
-	\item Position Error
-	\item Velocity Error
+	\item State Vector: $\mathbf{X}= \begin{bmatrix} \mathbf{r} &\mathbf{v}\end{bmatrix}^T \in \mathbb{R}^6$
+	\item State Estimate: $\mathbf{\hat{X}} \in \mathbb{R}^6$
+	\item State Error: $\mathbf{x} \in \mathbb{R}^6$
 \end{enumerate}
 
 \subsection{Action Model}
@@ -63,7 +65,7 @@ This project considers a spacecraft with the following operational modes:
 
 The work for this project is envisioned to proceed as follows:
 \begin{enumerate}
-	\item Paramtereize the spacecraft mode control problem.
+	\item Parametereize the spacecraft mode control problem.
 	\item Develop an environment model for this problem within the Partially-Observable Markov Decision Process framework
 	\item Implement a ``naive'' reinforcement learning approach.
 	\item Implement more complex reinforcement learning approaches.
