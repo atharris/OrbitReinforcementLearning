@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.9.25)  1 MAR 2018 16:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.9.25)  1 MAR 2018 16:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -240,7 +240,7 @@ LaTeX Warning: Citation `Starek2016' on page 1 undefined on input line 23.
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 
-LaTeX Warning: Citation `bibid' on page 2 undefined on input line 78.
+LaTeX Warning: Citation `bibid' on page 2 undefined on input line 80.
 
 [2] (./proposal_main.aux)
 
@@ -268,7 +268,7 @@ s/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
 r7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr
 /share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on proposal_main.pdf (2 pages, 140276 bytes).
+Output written on proposal_main.pdf (2 pages, 140255 bytes).
 PDF statistics:
  67 PDF objects out of 1000 (max. 8388607)
  48 compressed objects within 1 object stream
