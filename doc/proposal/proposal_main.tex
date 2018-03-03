@@ -1,49 +1,61 @@
 \documentclass[]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{multicol}
+
+\geometry{letterpaper, portrait, margin=1in}
 
 %opening
 \title{Project Proposal: Reinforcement Learning for Spacecraft Mode Control}
-\author{}
+\author{Team Members: Omar Hammad, Andrew Harris, Andrew Mills, Thibaud Teil}
 
 \begin{document}
 
 \maketitle
 
-\begin{abstract}
-
-\end{abstract}
 
 \section{Background}
 
-The high cost of space mission operations has motivated several space agencies to prioritize the development of ``autonomous'' spacecraft control techniques \cite{Pecheur2000}. Of particular note are on-board autonomy techniques, which serve to expand spacecraft capabilities in environments where ground contact is not possible. While these techniques offer considerable promise, concerns remain regarding a variety of factors surrounding their implementation, such as the cost of developing such systems and their tolerance for un-modeled behaviors\cite{Starek2016}. Many of these issues are addressed in other fields through the application of machine learning (ML) techniques, which can provide autonomous systems with the ability to learn from and adapt to their environments without human intervention. These techniques, coupled with high-fidelity simulation tools, are a potential avenue for reshaping the manner in which flight systems are developed and fielded. 
+The high cost of space mission operations has motivated several space agencies to prioritize the development of ``autonomous'' spacecraft control techniques. Of particular note are on-board autonomy techniques, which serve to expand spacecraft capabilities in environments where ground contact is not possible. While these techniques offer considerable promise, concerns remain regarding a variety of factors surrounding their implementation, such as the cost of developing such systems and their tolerance for un-modeled behaviors. Many of these issues are addressed in other fields through the application of machine learning (ML) techniques, which can provide autonomous systems with the ability to learn from and adapt to their environments without human intervention. These techniques, coupled with high-fidelity simulation tools, are a potential avenue for reshaping the manner in which flight systems are developed and fielded. 
+
 
 
 \section{Machine Learning Focus}
 
-This project topic is primarily motivated by our group's interest in understanding reinforcement learning techniques and their application to problems in aerospace. However, the broad scope of the topic can include other aspects of machine learning, such as classification and inference, if time allows. 
+This project topic is primarily motivated by our group's interest in understanding reinforcement learning techniques and their application to problems in aerospace. However, the scope of the problem at hand includes the possibility of adding inference or classification as additional tasks.
 
-Reinforcement learning is broadly defined as a class of machine learning techniques that maximize the earned reward of a software agent that interacts with a given environment. 
+Currently, Bayesian estimation is the de facto method used for spacecraft autonomy. By obtaining the maximum likelihood estimate of a spacecrafts states given a set of measurements, Kalman Filters provide an optimal solution for guidance. Although this is a robust solution, these filters often fall short when it comes to fault detection. They also demand expertise when being developed, modified, or maintained. Reinforced learning methods solve the optimization problem in a new and scarcely used way. The reason for their lack of popularity in the space sector is that data is not plentiful, whereas ML techniques rely on the abundance of data. Yet, with improved simulation methods, runs can now be generated swiftly and with high fidelity, hence yielding the data needed for reinforced learning. 
+
+Reinforcement learning is broadly defined as a class of machine learning techniques that maximize the earned reward of a software agent that interacts with a given environment. Through the project scope, we intend to explore the space of both different simulation environments (linear vs. nonlinear models, selection of parameters to model in an environment) and various learning algorithms (model-based vs. model free, Q-learning methods, ``deep'' reinforcement learning methods). Reinforcement learning has been successfully applied to other problems in vehicle autonomy and control that bear similarities to spacecraft mode selection.
 
 \section{Problem Statement}
-At present, we propose parameterizing the spacecraft mode-control problem in the following manner. 
+The system we are attempting to control with reinforcement learning consists of a single spacecraft attempting to enter and maintain an orbit about a planet in deep space. At a high level, this consists of a pair of orbit-entry burns, science operations, and minor corrective impulses periodically to counteract the affect of un-modeled dynamics. It is assumed that the spacecraft has states in which it can conduct the low-level maths required to accomplish these aims; the goal of our software agent is to command the spacecraft to enter the correct mode under the correct circumstances. 
 
+
+\subsection{Data Set}
+
+Training data for the reinforcement learning algorithm will be generated by the team in the form of linear and nonlinear environment models. Data will be gathered by the algorithm during training by exploring the environment. Simple linear models based on linear relative error or state dynamics will be used for the initial training and development of the reinforcement learning algorithm. High-performance nonlinear orbital mechanics models with support for integrated flight software, such as Basilisk (http://hanspeterschaub.info/bskMain.html), will be used for later phases.
+
+\begin{multicols}{2}
 \subsection{State Description}
 \textbf{Environment States}
 
 \begin{enumerate}
-	\item Spacecraft Position:
-	\item Spacecraft Velocity:
-	\item Reference Position:
-	\item Reference Velocity:
-	\item Spacecraft Error Indicator:
+	\item Spacecraft Position: $\mathbf{r} \in \mathbb{R}^3$
+	\item Spacecraft Velocity: $\mathbf{v} \in \mathbb{R}^3$
+	\item Reference Position: $\mathbf{r_0} \in \mathbb{R}^3$
+	\item Reference Velocity: $\mathbf{v_0} \in \mathbb{R}^3$
+	\item Spacecraft Error Indicator: $E \in \{0,1\}$
 \end{enumerate}
 
 \textbf{On-Board States}
 \begin{enumerate}
-	\item Position Estimate
-	\item Velocity Estimate
-	\item Position Error
-	\item Velocity Error
+	\item State Vector: $\mathbf{X}= \begin{bmatrix} \mathbf{r} &\mathbf{v}\end{bmatrix}^T \in \mathbb{R}^6$
+	\item State Estimate: $\mathbf{\hat{X}} \in \mathbb{R}^6$
+	\item State Error: $\mathbf{x} \in \mathbb{R}^6$
 \end{enumerate}
+\end{multicols}
 
 \subsection{Action Model}
 This project considers a spacecraft with the following operational modes:
@@ -57,16 +69,19 @@ This project considers a spacecraft with the following operational modes:
 	\item \textbf{Science Operations:} In this mode, the spacecraft collects a reward proportional to its state error. However, both its orbit determination and orbit control errors increase with time.
 	
 	\item \textbf{Safe Mode:} if the spacecraft enters an error state (i.e., if the error state variable is 1), entering this mode will reset the error state to 0. No other behavior occurs. 
-\end{enumerate}
+\end{enumerate} 
 
 \section{Proposed Work Plan}
 
 The work for this project is envisioned to proceed as follows:
 \begin{enumerate}
-	\item Paramtereize the spacecraft mode control problem.
-	\item Develop an environment model for this problem within the Partially-Observable Markov Decision Process framework
-	\item Implement a ``naive'' reinforcement learning approach.
-	\item Implement more complex reinforcement learning approaches.
+	\item \textbf{Linear System:} Consider error states that grow and shrink linearly with time, a reasonable approximation for many spacecraft problems. Attempt 2-3 learning strategies on the linear model. (Completion Date: April 1st)
+	\begin{enumerate}
+		\item Model Implementation: Write the models to implement a linear environment. Wrap these models in a manner suitable for reinforcement learning. (Completion Date: March 8th)
+		\item Model-Free Learning: Implement time-difference Q-learning for the system. (Completion Date: March 15th)
+		\item Model-Based Maximum Likelihood methods: Implement a maximum-likelihood learning method, such as \textit{Dyna} (suggested by Kochenderfer \cite{bibid})(Completion Date: March 28th)
+	\end{enumerate}
+	\item \textbf{Nonlinear System:} Apply the learned linear models to a ``true'' nonlinear system and examine their performance. Attempt to apply learning techniques to the nonlinear system. (Completion Date: May 4th)
 \end{enumerate}
 	
 
