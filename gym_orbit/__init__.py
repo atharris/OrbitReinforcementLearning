@@ -5,5 +5,5 @@ logger = logging.getLogger(__name__)
 
 register(
     id='linear_orbit-v0',
-    entry_point='src.envs:LinearOrbitEnv',
+    entry_point='gym_orbit.envs:LinearOrbitEnv',
 )

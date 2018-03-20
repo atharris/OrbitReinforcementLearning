@@ -1,1 +1,1 @@
-from src.envs.linear_env_lib import LinearOrbitEnv
+from gym_orbit.envs.linear_env_lib import LinearOrbitEnv
