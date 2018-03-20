@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='spaceModeControl',
-      version='0.0.1',
-      install_requires=['gym']  # And any other dependencies foo needs
+setup(name='gym_orbit',
+      version='0.0.3',
+      install_requires=['gym','matplotlib','numpy','pandas']  # And any other dependencies foo needs
 )

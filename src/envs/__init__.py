@@ -1,1 +1,1 @@
-from spaceModeControl.envs.linear_env_lib import LinearOrbitEnv
+from src.envs.linear_env_lib import LinearOrbitEnv

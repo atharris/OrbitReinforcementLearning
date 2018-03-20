@@ -1,7 +1,8 @@
 import gym
 import numpy as np
+import src
 
-env = gym.make('FrozenLake-v0')
+env = gym.make('linear_orbit-v0')
 
 #Initialize table with all zeros
 Q = np.zeros([env.observation_space.n,env.action_space.n])

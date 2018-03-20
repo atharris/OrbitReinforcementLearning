@@ -1,6 +1,9 @@
+import logging
 from gym.envs.registration import register
 
+logger = logging.getLogger(__name__)
+
 register(
-    id='linear_space_env-v0',
-    entry_point='orbitModeControl.envs:linear_environment_lib',
+    id='linear_orbit-v0',
+    entry_point='src.envs:LinearOrbitEnv',
 )

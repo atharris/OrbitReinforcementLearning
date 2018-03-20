@@ -16,6 +16,7 @@ from gym import spaces
 
 class spacecraft_state():
     def __init__(self):
+        # type: () -> object
         self.state_err = 0
         self.est_err= 0
         self.error_mode = 0
@@ -94,13 +95,14 @@ class LinearOrbitEnv(gym.Env):
         self.obs_mode_constants = [-1.0, 1.0, 0.9]
         self.control_mode_constants = [1.0, -1.0, 0.9]
         self.error_mode_constants = [1.0, 1.0, 1.0]
+        self.safe_mode_constants = [0,0,0]
 
         self.curr_state = spacecraft_state()
 
         # Observation is the remaining time
         low = np.array([0.0,  # remaining_tries
                         ])
-        high = np.array([self.TOTAL_TIME_STEPS,  # remaining_tries
+        high = np.array([100000.,  # pick a big number
                          ])
         self.observation_space = spaces.Box(low, high)
 
@@ -159,7 +161,8 @@ class LinearOrbitEnv(gym.Env):
             elif action == 1:
                 consts = self.control_mode_constants
             else:
-                raise RunTimeError("Action not found.")
+                print "Action not found."
+                consts = self.safe_mode_constants
 
             self.curr_state = operational_mode(self.curr_state, self.step_timestep, consts)
 
@@ -168,10 +171,7 @@ class LinearOrbitEnv(gym.Env):
 
     def _get_reward(self):
         """Reward is given for a sold banana."""
-        if self.is_banana_sold:
-            return self.price - 1
-        else:
-            return 0.0
+        return self.cost_modifier * self.curr_state.state_err
 
     def _reset(self):
         """
@@ -180,10 +180,9 @@ class LinearOrbitEnv(gym.Env):
         -------
         observation (object): the initial observation of the space.
         """
-        self.curr_episode += 1
+        self.curr_state = spacecraft_state()
         self.action_episode_memory.append([])
-        self.is_banana_sold = False
-        self.price = 1.00
+
         return self._get_state()
 
     def _render(self, mode='human', close=False):
@@ -191,5 +190,5 @@ class LinearOrbitEnv(gym.Env):
 
     def _get_state(self):
         """Get the observation."""
-        ob = [self.TOTAL_TIME_STEPS - self.curr_step]
+        ob = self.curr_state
         return ob
