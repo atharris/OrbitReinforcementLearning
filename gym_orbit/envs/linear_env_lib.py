@@ -17,8 +17,9 @@ from gym import spaces
 class spacecraft_state():
     def __init__(self):
         # type: () -> object
-        self.state_err = 0
-        self.est_err= 0
+        #self.state_err = 0
+        #self.est_err= 0
+        self.state_vec = np.array([0,0])
         self.error_mode = 0
 
 def operational_mode(input_state, time, ops_constants):
@@ -30,10 +31,10 @@ def operational_mode(input_state, time, ops_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = abs(input_state.state_err + ops_constants[0] * time)
-    out_state.est_err = abs(input_state.est_err + ops_constants[1] * time)
+
+    out_state.state_vec = ops_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     error_draw = np.random.uniform(0,1,[1,])
-    if error_draw > ops_constants[2]:
+    if error_draw > ops_constants[1]:
         out_state.error_mode = 1
     else:
         out_state.error_mode = 0
@@ -49,8 +50,7 @@ def error_mode(input_state, time, error_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = abs(input_state.state_err + error_constants[0] * time)
-    out_state.est_err = abs(input_state.est_err + error_constants[1] * time)
+    out_state.state_vec = error_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     out_state.error_mode = 1
 
     return out_state
@@ -64,8 +64,7 @@ def safe_mode(input_state, time, safe_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = abs(input_state.state_err + safe_constants[0] * time)
-    out_state.est_err = abs(input_state.est_err + safe_constants[1] * time)
+    out_state.state_vec = safe_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     out_state.error_mode = 0
 
     return out_state
@@ -82,24 +81,45 @@ class LinearOrbitEnv(gym.Env):
         print("OrbitEnv - Version {}".format(self.__version__))
 
         # General variables defining the environment
-        self.step_timestep = 1.*60.*60.0 #  Default "mode" timestep is 1 hour
+        self.step_timestep = 1. #  Default "mode" timestep is 1 second
         self.curr_step = -1
         self.max_length = 100 # Specify a maximum number of timesteps
 
         # Define what the agent can do
         # Defines the number of discrete spacecraft modes.
         self.action_space = spaces.Discrete(3)
-        self.state_error = 0
-        self.control_error = 0
 
-        self.cost_modifier = -1
+        self.cost_modifier = -0.1
 
-        self.obs_mode_constants = [1.0, -10.0, 0.9]
-        self.control_mode_constants = [-10.0, 1.0, 0.9]
-        self.error_mode_constants = [2.0, 2.0, 1.0]
-        self.safe_mode_constants = [0.1,0.1,0]
+        self.A = np.array([0.001])
+        self.B = np.array([1])
+        self.C = np.array([1])
+        self.D = np.array([0])
+        self.K = np.array([1.01])
+        self.L = np.array([1.01])
+
+        obs_stm = np.reshape(np.array([[self.A, np.zeros(self.A.shape)],
+                           [np.zeros(self.A.shape), self.A - self.L.dot(self.C)]]), [2,2])
+        ctrl_stm = np.reshape(np.array([[self.A - self.B*self.K, self.B*self.K], [np.zeros(self.A.shape), self.A]]), [2,2])
+        error_stm = np.reshape(np.array([[self.A,np.zeros(self.A.shape)],[np.zeros(self.A.shape), self.A]]), [2,2])
+        safe_stm = np.reshape(np.array([[0.0001*self.A,np.zeros(self.A.shape)],[np.zeros(self.A.shape), 0.0001*self.A]]), [2,2])
+
+
+
+        self.obs_mode_constants = [obs_stm, 0.9]
+        self.control_mode_constants = [ctrl_stm, 0.9]
+
+        self.error_mode_constants = [error_stm, 1.0]
+        self.safe_mode_constants = [safe_stm, 0.0]
+
+        #self.obs_mode_constants = [1.0, -10.0, 0.9]
+        #self.control_mode_constants = [-10.0, 1.0, 0.9]
+        #self.error_mode_constants = [2.0, 2.0, 1.0]
+        #self.safe_mode_constants = [0.1,0.1,0]
 
         self.curr_state = spacecraft_state()
+        self.init_state = np.array([10000,10000])
+        self.curr_state.state_vec = self.init_state
 
         # Observation is the current "true" state error.
         low = np.array([0.0,  # remaining_tries
@@ -164,18 +184,19 @@ class LinearOrbitEnv(gym.Env):
                 consts = self.obs_mode_constants
             elif action == 1:
                 consts = self.control_mode_constants
+            elif action == 2:
+                consts = self.safe_mode_constants
             else:
-                print "Action not found."
+                print "Action not found. Using safe mode constants:"
                 consts = self.safe_mode_constants
 
             self.curr_state = operational_mode(self.curr_state, self.step_timestep, consts)
 
         remaining_steps = self.max_length - self.curr_step
-        time_is_over = (remaining_steps <= 0)
 
     def _get_reward(self):
         """Reward is given for a sold banana."""
-        return self.cost_modifier * self.curr_state.state_err
+        return self.cost_modifier * (self.curr_state.state_vec[0])**2.0
 
     def _reset(self):
         """
@@ -185,6 +206,7 @@ class LinearOrbitEnv(gym.Env):
         observation (object): the initial observation of the space.
         """
         self.curr_state = spacecraft_state()
+        self.curr_state.state_vec = self.init_state
         self.action_episode_memory.append([])
 
         return self._get_state()

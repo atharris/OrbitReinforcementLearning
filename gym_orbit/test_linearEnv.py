@@ -19,18 +19,17 @@ episode_over = False
 
 env.reset()
 
-action_set = [0,0,1,1,0,0,1,1]
+
 #   Test observation action
-for action in action_set:
+while episode_over == False:
+    action = np.random.randint(0,3,[1])
     tmpState, tmpRew, episode_over, tmpdict = env.step(action)
 
-    obsErr.append(tmpState.est_err)
-    stateErr.append(tmpState.state_err)
+    obsErr.append(tmpState.state_vec[1])
+    stateErr.append(tmpState.state_vec[0])
     errorMode.append(tmpState.error_mode)
     rewardList.append(tmpRew)
-    if episode_over:
-        print "Something stopped it."
-        break
+
 
 
 
