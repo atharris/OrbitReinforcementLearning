@@ -30,8 +30,8 @@ def operational_mode(input_state, time, ops_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = input_state.state_err + ops_constants[0] * time
-    out_state.est_err = input_state.est_err + ops_constants[1] * time
+    out_state.state_err = abs(input_state.state_err + ops_constants[0] * time)
+    out_state.est_err = abs(input_state.est_err + ops_constants[1] * time)
     error_draw = np.random.uniform(0,1,[1,])
     if error_draw > ops_constants[2]:
         out_state.error_mode = 1
@@ -49,8 +49,8 @@ def error_mode(input_state, time, error_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = input_state.state_err + error_constants[0] * time
-    out_state.est_err = input_state.est_err + error_constants[1] * time
+    out_state.state_err = abs(input_state.state_err + error_constants[0] * time)
+    out_state.est_err = abs(input_state.est_err + error_constants[1] * time)
     out_state.error_mode = 1
 
     return out_state
@@ -64,8 +64,8 @@ def safe_mode(input_state, time, safe_constants):
     :return:
     '''
     out_state = spacecraft_state()
-    out_state.state_err = input_state.state_err + safe_constants[0] * time
-    out_state.est_err = input_state.est_err + safe_constants[1] * time
+    out_state.state_err = abs(input_state.state_err + safe_constants[0] * time)
+    out_state.est_err = abs(input_state.est_err + safe_constants[1] * time)
     out_state.error_mode = 0
 
     return out_state
@@ -88,18 +88,20 @@ class LinearOrbitEnv(gym.Env):
 
         # Define what the agent can do
         # Defines the number of discrete spacecraft modes.
-        self.action_space = spaces.Discrete(21)
+        self.action_space = spaces.Discrete(3)
         self.state_error = 0
         self.control_error = 0
 
-        self.obs_mode_constants = [-1.0, 1.0, 0.9]
-        self.control_mode_constants = [1.0, -1.0, 0.9]
-        self.error_mode_constants = [1.0, 1.0, 1.0]
-        self.safe_mode_constants = [0,0,0]
+        self.cost_modifier = -1
+
+        self.obs_mode_constants = [1.0, -10.0, 0.9]
+        self.control_mode_constants = [-10.0, 1.0, 0.9]
+        self.error_mode_constants = [2.0, 2.0, 1.0]
+        self.safe_mode_constants = [0.1,0.1,0]
 
         self.curr_state = spacecraft_state()
 
-        # Observation is the remaining time
+        # Observation is the current "true" state error.
         low = np.array([0.0,  # remaining_tries
                         ])
         high = np.array([100000.,  # pick a big number
@@ -109,6 +111,7 @@ class LinearOrbitEnv(gym.Env):
         # Store what the agent tried
         self.curr_episode = -1
         self.action_episode_memory = []
+        self.episode_over = False
 
     def _step(self, action):
         """
@@ -139,14 +142,15 @@ class LinearOrbitEnv(gym.Env):
                  use this for learning.
         """
         if self.curr_step > self.max_length:
-            raise RuntimeError("Episode is done")
+            self.episode_over = True
         self.curr_step += 1
         self._take_action(action)
         reward = self._get_reward()
         ob = self._get_state()
-        return ob, reward, self.is_banana_sold, {}
+        return ob, reward, self.episode_over, {}
 
     def _take_action(self, action):
+
         self.action_episode_memory[self.curr_episode].append(action)
 
         if self.curr_state.error_mode == 1:
@@ -166,7 +170,7 @@ class LinearOrbitEnv(gym.Env):
 
             self.curr_state = operational_mode(self.curr_state, self.step_timestep, consts)
 
-        remaining_steps = self.TOTAL_TIME_STEPS - self.curr_step
+        remaining_steps = self.max_length - self.curr_step
         time_is_over = (remaining_steps <= 0)
 
     def _get_reward(self):
