@@ -1,1 +1,2 @@
 from gym_orbit.envs.linear_env_lib import LinearOrbitEnv
+from gym_orbit.envs.relative_env_lib import RelativeOrbitEnv
