@@ -27,7 +27,13 @@ def resultOrbit(input_state, desired_orbit):
 
     '''
     assert isinstance(desired_orbit, om.ClassicElements)
-    assert isinstance(input_state, StateLib.Spacecraft_state)
+    assert np.len(input_state)==6
+
+    r_des, v_des = om.elem2rv_parab(desired_orbit)
+
+    r1 = np.linalg.norm(input_state[0:3])
+    r2 = np.linalg.norm(r_des)
+    DV = np.sqrt(om.MU_MARS/r1)*(np.sqrt(2*r2/(r1+r2))-1.)
 
     thrust = np.zeros(len(input_state))
     thrust[3:6] = -DV*input_state[3:6]/np.linalg.norm(input_state[3:6])
