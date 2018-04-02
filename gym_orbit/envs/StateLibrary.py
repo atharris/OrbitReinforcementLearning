@@ -8,10 +8,25 @@ Simulate a mars entry scenario using linear state and estimation error growth mo
 import numpy as np
 
 
-class Spacecraft_state():
+class linear_states():
+    '''
+    Simple state holder for two-dimensional model.
+    '''
     def __init__(self):
-        # type: () -> object
-        #self.state_err = 0
-        #self.est_err= 0
         self.state_vec = np.array([0,0])
         self.error_mode = 0
+
+class rv_state():
+    '''
+    Full state vector for nonlinear model.
+    '''
+    def __init__(self):
+        self.state_vec = np.zeros([6,])
+
+class observed_state():
+    '''
+    Holder for estimated state and covariance. Uses rv_state to hold position, velocity.
+    '''
+    def __init__(self):
+        self.mean_state = rv_state()
+        self.covariance = np.zeros([6,6])

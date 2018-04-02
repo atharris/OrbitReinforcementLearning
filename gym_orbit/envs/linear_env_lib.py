@@ -13,14 +13,8 @@ import math
 import gym
 import numpy as np
 from gym import spaces
+import StateLibrary as sl
 
-class spacecraft_state():
-    def __init__(self):
-        # type: () -> object
-        #self.state_err = 0
-        #self.est_err= 0
-        self.state_vec = np.array([0,0])
-        self.error_mode = 0
 
 def operational_mode(input_state, time, ops_constants):
     '''
@@ -30,7 +24,7 @@ def operational_mode(input_state, time, ops_constants):
                                     [ obs_estimation_constant, obs_control_constant, obs_error_constant
     :return:
     '''
-    out_state = spacecraft_state()
+    out_state = sl.linear_states()
 
     out_state.state_vec = ops_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     error_draw = np.random.uniform(0,1,[1,])
@@ -49,7 +43,7 @@ def error_mode(input_state, time, error_constants):
     :param error_constants:
     :return:
     '''
-    out_state = spacecraft_state()
+    out_state = sl.linear_states()
     out_state.state_vec = error_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     out_state.error_mode = 1
 
@@ -63,7 +57,7 @@ def safe_mode(input_state, time, safe_constants):
     :param error_constants:
     :return:
     '''
-    out_state = spacecraft_state()
+    out_state = sl.linear_states()
     out_state.state_vec = safe_constants[0].dot(input_state.state_vec) * time + input_state.state_vec
     out_state.error_mode = 0
 
@@ -117,7 +111,7 @@ class LinearOrbitEnv(gym.Env):
         #self.error_mode_constants = [2.0, 2.0, 1.0]
         #self.safe_mode_constants = [0.1,0.1,0]
 
-        self.curr_state = spacecraft_state()
+        self.curr_state = sl.linear_states()
         self.init_state = np.array([10000,10000])
         self.curr_state.state_vec = self.init_state
 
@@ -205,7 +199,7 @@ class LinearOrbitEnv(gym.Env):
         -------
         observation (object): the initial observation of the space.
         """
-        self.curr_state = spacecraft_state()
+        self.curr_state = sl.linear_states()
         self.curr_state.state_vec = self.init_state
         self.action_episode_memory.append([])
 
