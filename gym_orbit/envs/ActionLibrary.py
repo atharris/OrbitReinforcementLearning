@@ -15,8 +15,82 @@ import orbitalMotion as om
 import StateLibrary as StateLib
 import RigidBodyKinematics as rbk
 import numpy as np
+from scipy.integrate import RK45
 from gym import spaces
 
+
+class mode_options:
+    '''
+    Class to hold all parameters necessary to propagate the spacecraft state forward through a mode.
+    '''
+    def __init__(self):
+        self.mode_length = 0 #  Total durtion of a mode, s
+        self.dt = 0 #   Timestep to be used in a mode, sl
+        self.mu = 0 #   Grav parameter for the planet
+        self.ref_coeff = 0 #    Reflectivity coefficient for the spacecraft
+        self.j2 = 0 #   J2 coeff for the planet
+        self.acc = np.zeros([3,]) # Additional acceleration, due to control/perturbation
+        self.rp = 0 #   Planet radius
+        self.cov_noise = 0.001*np.identity(6)
+        self.
+
+def propModel(t,y,odeOptions):
+    mu = odeOptions.mu
+    acc = odeOptions.acc
+    radius = np.linalg.norm(y[0:3])
+    gravAcc = -mu/(radius**3.0)
+    ctStm = np.array([[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1],[gravAcc,0,0,0,0,0],[0,gravAcc,0,0,0,0],[0,0,gravAcc,0,0,0]])
+    ctStm = np.reshape(ctStm, [6,6])
+    addAcc = np.array([[0],[0],[0],[acc[0]],[acc[1]],[acc[2]]])
+    addAcc = np.reshape(addAcc, [6,])
+    y_dot = np.dot(ctStm, y) + addAcc
+    y_dot = np.reshape(y_dot, [6,])
+    return y_dot
+
+def j2PropModel(t,y,odeOptions):
+    mu = odeOptions.mu
+    acc = odeOptions.acc
+    j2 = odeOptions.j2
+    planetRad = odeOptions.rp
+    radius = np.linalg.norm(y[0:3])
+
+    gravDir = y[0:3] / radius
+
+    y_dot = np.zeros([6,])
+    a = np.zeros([3,])
+    a[0] = - 3*j2*mu*planetRad**2*y[0]/(2*radius**5)*(1.-5.*y[2]**2/radius**2)
+    a[1] = - 3*j2*mu*planetRad**2*y[1]/(2*radius**5)*(1.-5.*y[2]**2/radius**2)
+    a[2] = - 3*j2*mu*planetRad**2*y[2]/(2*radius**5)*(3.-5.*y[2]**2/radius**2)
+    y_dot[0:3] = y[3:]
+    y_dot[3:] = -mu/(radius**2.0) * gravDir + a + acc
+
+    return y_dot
+
+def truth_propagate(input_state,  mode_options):
+
+    init_vec = input_state.state_vec
+    integrator = RK45(fun=lambda t,y: j2PropModel(t,y,mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
+    integrator.step()
+    input_state.state_vec = integrator.y
+
+    return input_state
+
+def sc_propagate(input_state,  mode_options):
+
+    init_vec = input_state.state_vec
+    integrator = RK45(fun=lambda t,y: propModel(t,y,mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
+    integrator.step()
+    input_state.state_vec = integrator.y
+
+    return input_state
+
+def est_propagate(estimated_state, mode_options):
+    init_mean = estimated_state.state_vec
+    init_cov = estimated_state.covariance
+
+    estimated_state = sc_propagate(estimated_state, mode_options)
+    estimated_state.cov = init_cov + mode_options.cov_noise * mode_options.dt
+    return estimated_state
 
 def resultOrbit(input_state, desired_orbit):
     '''
@@ -41,5 +115,58 @@ def resultOrbit(input_state, desired_orbit):
     new_state = input_state + thrust
 
     return om.rv2elem_parab(om.MU_MARS, new_state[0:3], new_state[3:6])
+
+def observationMode(est_state, ref_state, true_state, des_state, mode_options):
+    '''
+    Function to simulate a period of orbit determination.
+    :param est_state: Estimated state at the beginning of the mode.
+    :param ref_state: Internal reference state at the beginning of the mode.
+    :param true_state: "Ground truth" state the spacecraft acts on and observes.
+    :param des_state: The desired end state of the spacecraft.
+
+    :return est_state: Updated state estimate at the end of the mode.
+    :return ref_state: Propagated reference state at the end of the mode.
+    :return true_state: propagated truth state at the end of the mode.
+    '''
+
+    tvec = np.arange(0,mode_options.mode_length, mode_options.dt)
+    est_error = true_state.state_vec - est_state.state_vec
+    for ind in range(1,len(tvec)):
+        #   Propagate truth state forward:
+        true_state.state_vec = truth_propagate(true_state.state_vec, mode_options)
+        #   Propagate reference state forward:
+        ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
+        #   Generate measurement of true state:
+        est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6,1)
+        #   Generate estimated state using measurement
+        est_state = kalman_step(est_state, meas, mode_options)
+
+    return est_state, ref_state, true_state
+
+def controlMode(est_state, ref_state, true_state):
+    '''
+        Function to simulate a period of orbit determination.
+        :param est_state: Estimated state at the beginning of the mode.
+        :param ref_state: Internal reference state at the beginning of the mode.
+        :param true_state: "Ground truth" state the spacecraft acts on and observes.
+        :param des_state: The desired end state of the spacecraft.
+
+        :return est_state: Updated state estimate at the end of the mode.
+        :return ref_state: Propagated reference state at the end of the mode.
+        :return true_state: propagated truth state at the end of the mode.
+        '''
+    tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
+
+    for ind in range(1, len(tvec)):
+        #   Propagate truth state forward:
+        true_state.state_vec = truth_propagate(true_state.state_vec, mode_options)
+        #   Propagate reference state forward:
+        ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
+        est_state = est_propagate(est_state)
+        #   Generate estimated state using measurement
+        mode_options.dv = sk_controller(est_state, ref_state)
+
+    return est_state, ref_state, true_state
+
 
 
