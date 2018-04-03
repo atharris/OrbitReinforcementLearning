@@ -17,16 +17,17 @@ import numpy as np
 from gym import spaces
 
 
-def resultOrbit(input_state, desired_orbit):
+def dVAction(input_state, desired_orbit):
     '''
     Mode in which the spacecraft is rendered non-functional and state error increases.
     :param input_state: state of the s/c when thrust is commanded
     :param DV: scalar thrust commanded (positive DV is against the s/c velocity)
-    :return: oe : Orbital Elements of the resulting orbit (instantiation of ClassicElements class)
+    :return: new_state : Cartesian vector in resulting orbit
+    :return: thrust : Thrust vector (norm of thrust times direction)
 
     '''
     assert isinstance(desired_orbit, om.ClassicElements)
-    assert np.len(input_state)==6
+    assert np.len(input_state) == 6
 
     r_des, v_des = om.elem2rv_parab(desired_orbit)
 
@@ -39,4 +40,4 @@ def resultOrbit(input_state, desired_orbit):
 
     new_state = input_state + thrust
 
-    return om.rv2elem_parab(om.MU_MARS, new_state[0:3], new_state[3:6])
+    return new_state, thrust
