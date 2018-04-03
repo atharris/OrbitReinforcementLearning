@@ -32,6 +32,8 @@ class mode_options:
         self.acc = np.zeros([3,]) # Additional acceleration, due to control/perturbation
         self.rp = 0 #   Planet radius
         self.cov_noise = 0.001*np.identity(6)
+        self.error_stm = -0.001*np.identity(6)
+        self.obs_limit = 1.0 #  Converged estimator accuracy in meters
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -129,7 +131,7 @@ def resultOrbit(input_state, desired_orbit):
 
     return om.rv2elem_parab(om.MU_MARS, new_state[0:3], new_state[3:6])
 
-def observationMode(est_state, ref_state, true_state, des_state, mode_options):
+def observationMode(est_state, ref_state, true_state, mode_options):
     '''
     Function to simulate a period of orbit determination.
     :param est_state: Estimated state at the beginning of the mode.
@@ -142,22 +144,22 @@ def observationMode(est_state, ref_state, true_state, des_state, mode_options):
     :return true_state: propagated truth state at the end of the mode.
     '''
 
-    tvec = np.arange(0,mode_options.mode_length, mode_options.dt)
+    tvec = np. arange(0,mode_options.mode_length, mode_options.dt)
     est_error = true_state.state_vec - est_state.state_vec
     for ind in range(1,len(tvec)):
         #   Propagate truth state forward:
-        true_state.state_vec = truth_propagate(true_state.state_vec, mode_options)
+        true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
-        #   Generate measurement of true state:
-        est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6,1)
+        ref_state = sc_propagate(ref_state, mode_options)
+        #   Generate measurement of true state:                                                         
+        est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
 
     est_state.state_vec = true_state.state_vec + est_error
     est_state.cov = mode_options.obs_limit * np.identity(6)
 
     return est_state, ref_state, true_state
 
-def controlMode(est_state, ref_state, true_state):
+def controlMode(est_state, ref_state, true_state, mode_options):
     '''
         Function to simulate a period of orbit determination.
         :param est_state: Estimated state at the beginning of the mode.
@@ -170,17 +172,17 @@ def controlMode(est_state, ref_state, true_state):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
-    k1 = np.identity(3)
-    k2 = np.identity(3)
+    k1 = 0.01*np.identity(3)
+    k2 = 0.05*np.identity(3)
 
     for ind in range(1, len(tvec)):
         #   Propagate truth state forward:
-        true_state.state_vec = truth_propagate(true_state.state_vec, mode_options)
+        true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
-        est_state = est_propagate(est_state)
+        ref_state = sc_propagate(ref_state, mode_options)
+        est_state = est_propagate(est_state, mode_options)
         mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
-
+    mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state
 
 

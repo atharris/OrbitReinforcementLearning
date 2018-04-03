@@ -28,5 +28,5 @@ class observed_state():
     Holder for estimated state and covariance. Uses rv_state to hold position, velocity.
     '''
     def __init__(self):
-        self.mean_state = rv_state()
+        self.state_vec = np.zeros([6,])
         self.covariance = np.zeros([6,6])
