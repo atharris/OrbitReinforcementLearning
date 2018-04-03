@@ -32,7 +32,6 @@ class mode_options:
         self.acc = np.zeros([3,]) # Additional acceleration, due to control/perturbation
         self.rp = 0 #   Planet radius
         self.cov_noise = 0.001*np.identity(6)
-        self.
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -92,6 +91,20 @@ def est_propagate(estimated_state, mode_options):
     estimated_state.cov = init_cov + mode_options.cov_noise * mode_options.dt
     return estimated_state
 
+def lyap_controller(ref_state, sc_state, K1, K2, mode_options):
+
+    refAcc = propModel(0, ref_state, mode_options)
+    scAcc = propModel(0, sc_state, mode_options)
+
+    posErr = sc_state[0:3] - ref_state[0:3]
+    velErr = sc_state[3:] - ref_state[3:]
+
+    dynDiff = scAcc[3:] - refAcc[3:]
+
+    controlOut = -dynDiff - K1.dot(posErr) - K2.dot(velErr)
+
+    return controlOut
+
 def resultOrbit(input_state, desired_orbit):
     '''
     Mode in which the spacecraft is rendered non-functional and state error increases.
@@ -138,8 +151,9 @@ def observationMode(est_state, ref_state, true_state, des_state, mode_options):
         ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
         #   Generate measurement of true state:
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6,1)
-        #   Generate estimated state using measurement
-        est_state = kalman_step(est_state, meas, mode_options)
+
+    est_state.state_vec = true_state.state_vec + est_error
+    est_state.cov = mode_options.obs_limit * np.identity(6)
 
     return est_state, ref_state, true_state
 
@@ -156,6 +170,8 @@ def controlMode(est_state, ref_state, true_state):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
+    k1 = np.identity(3)
+    k2 = np.identity(3)
 
     for ind in range(1, len(tvec)):
         #   Propagate truth state forward:
@@ -163,8 +179,7 @@ def controlMode(est_state, ref_state, true_state):
         #   Propagate reference state forward:
         ref_state.state_vec = sc_propagate(ref_state.state_vec, mode_options)
         est_state = est_propagate(est_state)
-        #   Generate estimated state using measurement
-        mode_options.dv = sk_controller(est_state, ref_state)
+        mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
 
     return est_state, ref_state, true_state
 
