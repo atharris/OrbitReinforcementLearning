@@ -192,8 +192,8 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
-    k1 = 0.001*np.identity(3)
-    k2 = 0.0005*np.identity(3)
+    k1 = 0.01*np.identity(3)
+    k2 = 0.1*np.identity(3)
 
     control_use = 0
     ref_options = copy.deepcopy(mode_options)

@@ -46,9 +46,9 @@ def set_default_ic():
 
     mode_options = al.mode_options()
     mode_options.dt = 1.0
-    mode_options.mode_length = 90.*60.0
+    mode_options.mode_length = 10.*60.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = 0.0#om.J2_MARS
+    mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
     mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
@@ -61,15 +61,15 @@ def set_default_ic():
     true_orbel.f = 0.00
 
     ref_orbel = om.ClassicElements()
-    ref_orbel.a = 7099.0
+    ref_orbel.a = 7100.0
     ref_orbel.e = 0.01
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
     ref_orbel.Omega = 0.0
-    ref_orbel.f = 0.00
+    ref_orbel.f = 0.01
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 7100.0
+    est_orbel.a = 7101.0
     est_orbel.e = 0.01
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
@@ -113,7 +113,7 @@ def test_propagators():
 def test_obsMode():
     ref_state, est_state, true_state, mode_options = set_default_ic()
 
-    n_steps = 10
+    n_steps = 1
 
     ref_hist = np.zeros([6, n_steps])
     true_hist = np.zeros([6, n_steps])
@@ -157,8 +157,6 @@ def test_ctrlMode():
     true_state = state_plot(true_hist)
     est_orb = orbit_plot(est_hist)
     est_state = state_plot(est_hist)
-
-
 
     plt.figure()
     plt.plot(ctrl_hist)
