@@ -8,6 +8,7 @@ Simulate a mars entry scenario using linear state and estimation error growth mo
 # core modules
 import random
 import math
+import copy
 
 # 3rd party modules
 import gym
@@ -48,6 +49,20 @@ def propModel(t,y,odeOptions):
     y_dot = np.reshape(y_dot, [6,])
     return y_dot
 
+def rk4(fun,t0,dt,y0, funOptions):
+    #INPUTS:
+    # fun: function to be integrated, defined as ynew = fun(t,y)
+    # t0: time at y0
+    # dt: designated step size (also ref'd as 'h')
+    # y0: initial conditions
+    k1 = fun(t0,y0,funOptions)
+    k2 = fun(  t0+dt/2.0,  y0 + dt/2.0 * k1,funOptions)
+    k3 = fun(t0+dt/2.0, y0 + dt/2.0 * k2,funOptions)
+    k4 = fun(t0 + dt, y0 + dt*k3,funOptions)
+    y1 = y0 + dt/6.0 * (k1 + 2.0*k2 + 2.0*k3 + k4)
+
+    return y1
+
 def j2PropModel(t,y,odeOptions):
     mu = odeOptions.mu
     acc = odeOptions.acc
@@ -70,18 +85,21 @@ def j2PropModel(t,y,odeOptions):
 def truth_propagate(input_state,  mode_options):
 
     init_vec = input_state.state_vec
-    integrator = RK45(fun=lambda t,y: j2PropModel(t,y,mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
-    integrator.step()
-    input_state.state_vec = integrator.y
+    #integrator = RK45(fun=lambda t, y: j2PropModel(t, y, mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
+    #integrator.step()
+    #input_state.state_vec = integrator.y
+    input_state.state_vec = rk4(j2PropModel, 0, mode_options.dt, init_vec, mode_options)
 
     return input_state
 
 def sc_propagate(input_state,  mode_options):
 
     init_vec = input_state.state_vec
-    integrator = RK45(fun=lambda t,y: propModel(t,y,mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
-    integrator.step()
-    input_state.state_vec = integrator.y
+    #integrator = RK45(fun=lambda t, y: propModel(t, y, mode_options), t0=0, y0=init_vec,  t_bound=mode_options.dt)
+    #integrator.step()
+    #input_state.state_vec = integrator.y
+    input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
+
 
     return input_state
 
@@ -95,8 +113,10 @@ def est_propagate(estimated_state, mode_options):
 
 def lyap_controller(ref_state, sc_state, K1, K2, mode_options):
 
-    refAcc = propModel(0, ref_state, mode_options)
-    scAcc = propModel(0, sc_state, mode_options)
+    tmp_opts = copy.deepcopy(mode_options)
+    tmp_opts.acc = np.zeros([3,])
+    refAcc = propModel(0, ref_state, tmp_opts)
+    scAcc = propModel(0, sc_state, tmp_opts)
 
     posErr = sc_state[0:3] - ref_state[0:3]
     velErr = sc_state[3:] - ref_state[3:]
@@ -145,7 +165,7 @@ def observationMode(est_state, ref_state, true_state, mode_options):
     '''
 
     tvec = np. arange(0,mode_options.mode_length, mode_options.dt)
-    est_error = true_state.state_vec - est_state.state_vec
+    est_error = -true_state.state_vec + est_state.state_vec
     for ind in range(1,len(tvec)):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
@@ -172,18 +192,25 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
-    k1 = 0.01*np.identity(3)
-    k2 = 0.05*np.identity(3)
+    k1 = 0.001*np.identity(3)
+    k2 = 0.0005*np.identity(3)
 
-    for ind in range(1, len(tvec)):
+    control_use = 0
+    ref_options = copy.deepcopy(mode_options)
+    ref_options.acc = np.zeros([3,])
+
+    for ind in range(0, len(tvec)):
+        #   Compute control acceleration:
+        mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
+        control_use = control_use + abs(np.linalg.norm(mode_options.acc))
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, mode_options)
+        ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
-        mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
+
     mode_options.acc = np.zeros([3,])
-    return est_state, ref_state, true_state
+    return est_state, ref_state, true_state, control_use
 
 
 

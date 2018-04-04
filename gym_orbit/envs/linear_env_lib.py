@@ -181,7 +181,8 @@ class LinearOrbitEnv(gym.Env):
             elif action == 2:
                 consts = self.safe_mode_constants
             else:
-                print "Action not found. Using safe mode constants:"
+                print("Action not found. Using safe mode constants:")
+
                 consts = self.safe_mode_constants
 
             self.curr_state = operational_mode(self.curr_state, self.step_timestep, consts)

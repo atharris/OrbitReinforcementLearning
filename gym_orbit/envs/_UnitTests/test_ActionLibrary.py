@@ -46,13 +46,14 @@ def set_default_ic():
 
     mode_options = al.mode_options()
     mode_options.dt = 1.0
-    mode_options.mode_length = 2.0*60.0
+    mode_options.mode_length = 90.*60.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = om.J2_MARS
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.1*np.identity(6)))
+    mode_options.j2 = 0.0#om.J2_MARS
+    mode_options.rp = om.REQ_MARS
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     true_orbel = om.ClassicElements()
-    true_orbel.a = 7100.0e3
+    true_orbel.a = 7100.0
     true_orbel.e = 0.01
     true_orbel.i = 0.0
     true_orbel.omega = 0.0
@@ -60,7 +61,7 @@ def set_default_ic():
     true_orbel.f = 0.00
 
     ref_orbel = om.ClassicElements()
-    ref_orbel.a = 7050.0e3
+    ref_orbel.a = 7099.0
     ref_orbel.e = 0.01
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
@@ -68,7 +69,7 @@ def set_default_ic():
     ref_orbel.f = 0.00
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 7150.0e3
+    est_orbel.a = 7100.0
     est_orbel.e = 0.01
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
@@ -138,23 +139,38 @@ def test_ctrlMode():
     ref_hist = np.zeros([6, n_steps])
     true_hist = np.zeros([6,n_steps])
     est_hist = np.zeros([6,n_steps])
+    ctrl_hist = [0]
 
     for ind in range(0,n_steps):
-        est_state, ref_state, true_state = al.controlMode(est_state, ref_state, true_state, mode_options)
+        est_state, ref_state, true_state, control_use = al.controlMode(est_state, ref_state, true_state, mode_options)
 
         ref_hist[:,ind] = ref_state.state_vec
         est_hist[:, ind] = est_state.state_vec
         true_hist[:, ind] = true_state.state_vec
+        ctrl_hist.append(control_use)
 
 
     states_fig = states_plot(true_hist, ref_hist, est_hist)
+    ref_orb = orbit_plot(ref_hist)
+    ref_state = state_plot(ref_hist)
+    true_orb = orbit_plot(true_hist)
+    true_state = state_plot(true_hist)
+    est_orb = orbit_plot(est_hist)
+    est_state = state_plot(est_hist)
+
+
+
+    plt.figure()
+    plt.plot(ctrl_hist)
+    plt.title('Control use')
     plt.show()
+
 
 
 
 if __name__ == "__main__":
     #test_propagators()
-    test_obsMode()
-    #test_ctrlMode()
+    #test_obsMode()
+    test_ctrlMode()
 
 
