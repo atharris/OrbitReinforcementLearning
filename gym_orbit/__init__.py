@@ -7,3 +7,8 @@ register(
     id='linear_orbit-v0',
     entry_point='gym_orbit.envs:LinearOrbitEnv',
 )
+
+register(
+    id='stationkeep_orbit-v0',
+    entry_point='gym_orbit.envs:StationKepEnv',
+)
