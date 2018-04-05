@@ -27,6 +27,7 @@ def set_default_ic():
     mode_options.j2 = om.J2_MARS
     mode_options.rp = om.REQ_MARS
     mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.obs_limit = 0.1
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -175,5 +176,6 @@ class pls_work_env(gym.Env):
 
     def _get_state(self):
         """Get the observation."""
-        ob = self.est_state
+        ob = {'state':self.est_state,
+            'control':self.control_use}
         return ob
