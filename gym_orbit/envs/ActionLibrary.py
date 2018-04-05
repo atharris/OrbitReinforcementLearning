@@ -17,7 +17,7 @@ import StateLibrary as StateLib
 import RigidBodyKinematics as rbk
 import numpy as np
 from scipy.integrate import RK45
-from gym import spaces
+
 
 
 class mode_options:

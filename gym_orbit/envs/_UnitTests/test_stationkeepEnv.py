@@ -7,26 +7,25 @@ env = gym.make('stationkeep_orbit-v0')
 
 #   Test action space
 act_space = env.action_space.n
-
-estState = np.zeros(6,env.max_length)
-trueState = np.zeros(6,env.max_length)
-refState = np.zeros(6,env.max_length)
+print(type(env.max_length))
+estState = np.zeros([6,env.max_length+1])
+trueState = np.zeros([6,env.max_length+1])
+refState = np.zeros([6,env.max_length+1])
 rewardList = []
 episode_over = False
 
 env.reset()
 
-ind=0
+ind=-1
 #   Test observation action
 while episode_over == False:
-    action = np.random.randint(0,3,[1])
+    action = np.random.randint(0,2,[1])
     tmpState, tmpRew, episode_over, tmpdict = env.step(action)
-
     estState[:,ind] = tmpState.state_vec
-    trueState[:,ind] = tmpdict.true_state.state_vec
-    refState[:,ind] = tmpdict.ref_state.state_vec
+    trueState[:,ind] = tmpdict['truth'].state_vec
+    refState[:,ind] = tmpdict['ref'].state_vec
     rewardList.append(tmpRew)
-    ind=ind+1
+    ind = len(rewardList)
 
 fig, axarr = plt.subplots(6, sharex=True)
 yArr = ['$x$ (m)', '$y$ (m)', '$z$ (m)', '$\dot{x}$ (m/s)', '$\dot{y}$ (m/s)', '$\dot{z}$ (m/s)']

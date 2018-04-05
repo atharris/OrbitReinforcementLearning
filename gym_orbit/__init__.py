@@ -9,5 +9,5 @@ register(
 )
 register(
     id='stationkeep_orbit-v0',
-    entry_point='gym_orbit.envs:StationKepEnv',
+    entry_point='gym_orbit.envs:pls_work_env',
 )

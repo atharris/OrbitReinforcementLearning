@@ -58,7 +58,7 @@ def set_default_ic():
     return ref_state, est_state, true_state, mode_options
 
 
-class StationKeepEnv(gym.Env):
+class pls_work_env(gym.Env):
     """
     Define a simple orbit environment.
     The environment defines which actions can be taken at which point and
@@ -70,7 +70,7 @@ class StationKeepEnv(gym.Env):
         print("StationKeepingEnv - Version {}".format(self.__version__))
 
         # General variables defining the environment
-        self.max_length = 100 # Specify a maximum number of timesteps
+        self.max_length = 30 # Specify a maximum number of timesteps
 
         #   Set up options, constants for this environment
         self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
@@ -88,11 +88,11 @@ class StationKeepEnv(gym.Env):
                          ])
         self.observation_space = spaces.Box(low, high)
 
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(2)
         # Store what the agent tried
         self.curr_episode = -1
         self.action_episode_memory = []
-        self.curr_step = -1
+        self.curr_step = 0
         self.episode_over = False
 
     def _step(self, action):
@@ -123,13 +123,14 @@ class StationKeepEnv(gym.Env):
                  However, official evaluations of your agent are not allowed to
                  use this for learning.
         """
-        if self.curr_step > self.max_length:
+        if self.curr_step >= self.max_length:
             self.episode_over = True
         self.curr_step += 1
         self._take_action(action)
         reward = self._get_reward()
         ob = self._get_state()
-        info = {self.ref_state, self.true_state}
+        info = {'ref': self.ref_state,
+                'truth': self.true_state}
         return ob, reward, self.episode_over, info
 
     def _take_action(self, action):
