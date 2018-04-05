@@ -5,10 +5,6 @@
 Simulate a mars entry scenario using linear state and estimation error growth models.
 """
 
-# core modules
-import random
-import math
-
 # 3rd party modules
 import gym
 import numpy as np
@@ -17,6 +13,7 @@ from gym import spaces
 import StateLibrary as sl
 import ActionLibrary as al
 import orbitalMotion as om
+
 
 def set_default_ic():
     est_state = sl.observed_state()
@@ -59,6 +56,7 @@ def set_default_ic():
     true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
     est_state.state_vec[0:3], est_state.state_vec[3:] = om.elem2rv(om.MU_MARS, est_orbel)
     return ref_state, est_state, true_state, mode_options
+
 
 class StationKeepEnv(gym.Env):
     """
@@ -131,7 +129,8 @@ class StationKeepEnv(gym.Env):
         self._take_action(action)
         reward = self._get_reward()
         ob = self._get_state()
-        return ob, reward, self.episode_over, {}
+        info = {self.ref_state, self.true_state}
+        return ob, reward, self.episode_over, info
 
     def _take_action(self, action):
 
