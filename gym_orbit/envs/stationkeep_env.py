@@ -168,7 +168,8 @@ class pls_work_env(gym.Env):
         self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
         self.control_use = 0.0
         self.action_episode_memory.append([])
-
+        self.episode_over = False
+        self.curr_step = 0
         return self._get_state()
 
     def _render(self, mode='human', close=False):

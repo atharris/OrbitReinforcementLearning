@@ -9,10 +9,6 @@ import DQN_Agent as dqn
 env = gym.make('stationkeep_orbit-v0')
 episode_over = False
 state_size = 6
-act_space = 2
-agent = dqn.DQNAgent(state_size, act_space)
-agent.load('dqn_test.h5')
-
 estState = np.zeros([6,env.max_length+1])
 trueState = np.zeros([6,env.max_length+1])
 refState = np.zeros([6,env.max_length+1])
@@ -28,7 +24,7 @@ colorDict = {0:'blue',
 ind=-1
 #   Test observation action
 while episode_over == False:
-    action = agent.act(state)
+    action = np.random.randint(0, 2, [1])
     actHist.append(action)
     obs, tmpRew, episode_over, tmpdict = env.step(action)
     next_state = np.reshape(obs['state'].state_vec, [1, state_size])
