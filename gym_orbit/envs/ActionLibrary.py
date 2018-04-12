@@ -108,7 +108,7 @@ def est_propagate(estimated_state, mode_options):
     init_cov = estimated_state.covariance
 
     estimated_state = sc_propagate(estimated_state, mode_options)
-    estimated_state.cov = init_cov + mode_options.cov_noise * mode_options.dt
+    estimated_state.covariance = init_cov + mode_options.cov_noise * mode_options.dt
     return estimated_state
 
 def lyap_controller(ref_state, sc_state, K1, K2, mode_options):
@@ -175,7 +175,7 @@ def observationMode(est_state, ref_state, true_state, mode_options):
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
 
     est_state.state_vec = true_state.state_vec + est_error
-    est_state.cov = mode_options.obs_limit * np.identity(6)
+    est_state.covariance = mode_options.obs_limit * np.identity(6)
 
     return est_state, ref_state, true_state
 

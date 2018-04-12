@@ -8,7 +8,7 @@ import DQN_Agent as dqn
 
 env = gym.make('stationkeep_orbit-v0')
 episode_over = False
-state_size = 6
+state_size = 12
 act_space = 2
 agent = dqn.DQNAgent(state_size, act_space)
 agent.load('dqn_test.h5')
@@ -21,7 +21,7 @@ actHist = []
 ctrlList = []
 
 obs = env.reset()
-state = np.reshape(obs['state'].state_vec, [1, state_size])
+state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)]]), [1, state_size])
 colorDict = {0:'blue',
              1:'red'}
 
@@ -31,7 +31,7 @@ while episode_over == False:
     action = agent.act(state)
     actHist.append(action)
     obs, tmpRew, episode_over, tmpdict = env.step(action)
-    next_state = np.reshape(obs['state'].state_vec, [1, state_size])
+    next_state = np.reshape(np.hstack([[obs['state'].state_vec], [np.diag(obs['state'].covariance)]]), [1, state_size])
     state = next_state
 
     estState[:,ind] = obs['state'].state_vec
@@ -54,7 +54,6 @@ for plotInd in range(0, 6):
     if plotInd < 6:
         axarr[plotInd].plot(abs(estState[plotInd, :] - trueState[plotInd, :]),label='estimator error')
         axarr[plotInd].plot(abs(refState[plotInd, :] - trueState[plotInd, :]),label='ctrl error')
-        #axarr[plotInd].plot(estState[plotInd, :] - refState[plotInd, :], label='sc error')
         if plotInd == 0:
             axarr[plotInd].set_title('Estimator, Control Errors vs. Time/Mode')
         for ind in range(0,env.max_length):

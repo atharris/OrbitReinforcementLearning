@@ -22,12 +22,12 @@ def set_default_ic():
 
     mode_options = al.mode_options()
     mode_options.dt = 1.0
-    mode_options.mode_length = 10.*60.0
+    mode_options.mode_length = 5.*60.0
     mode_options.mu = om.MU_MARS
     mode_options.j2 = om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
-    mode_options.obs_limit = 0.1
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.1*np.identity(6)))
+    mode_options.obs_limit = 0.05
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -71,15 +71,15 @@ class pls_work_env(gym.Env):
         print("StationKeepingEnv - Version {}".format(self.__version__))
 
         # General variables defining the environment
-        self.max_length = 30 # Specify a maximum number of timesteps
+        self.max_length = 60 # Specify a maximum number of timesteps
 
         #   Set up options, constants for this environment
         self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
         self.control_use = 0.0
 
         #   Set up cost constants
-        self.state_cost = 1.0 * np.identity(6)
-        self.control_cost = 0.5
+        self.state_cost = -1.0 * np.identity(6)
+        self.control_cost = -0.05
 
 
         # Observation is the estimated mean, and the associated covariance matrix
