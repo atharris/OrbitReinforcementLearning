@@ -201,33 +201,36 @@ if __name__ == "__main__":
 
 	grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
-	env = gym.make("FrozenLakeNotSlippery-v0")
+	# env = gym.make("FrozenLakeNotSlippery-v0")
+	env = gym.make('CartPole-v0')
 	a_size = env.action_space.n
-	s_size = env.observation_space.n
+	# s_size = env.observation_space.n
+	s_size = np.shape(env.observation_space)[0]
 	print("Calling QLearnContinuous...")
-	QL = QLearnContinuous(s_size, a_size, [24], onehot=True)
+	QL = QLearnContinuous(s_size, a_size, [24], onehot=False)
 	print("Qlearner initialized.")
-	rList = QL.train(env, epochs=500, steps=100, eps_range=[1.0, 0.01])
+	rList = QL.train(env, epochs=1000, steps=250, eps_range=[1.0, 0.01], eps_decay=0.998)
+	# QL.load('Qlearn_500')
 	print("done training.")
-	QL.save('Qlearn_500')
+	QL.save('Qlearn_1000')
 	print()
 	env.reset()
-	env.render()
-	print()
+	# env.render()
+	# print()
 
-	for i in range(grid_size):
-		row = list()
-		for j in range(grid_size):
-			s = to_categorical(grid_size*i + j, s_size)
-			a = QL.action(s, 0)
-			direct = print_direction(a)
-			row.append(direct)
-		print('{}'.format(row))
+	# for i in range(grid_size):
+	# 	row = list()
+	# 	for j in range(grid_size):
+	# 		s = to_categorical(grid_size*i + j, s_size)
+	# 		a = QL.action(s, 0)
+	# 		direct = print_direction(a)
+	# 		row.append(direct)
+	# 	print('{}'.format(row))
 
 	# Test the trained QLearner
-	runs = 30
-	rewards, num_steps = QL.simulate(env, epochs=runs, steps=100, pause=0.0, render=False)
+	runs = 5
+	rewards, num_steps = QL.simulate(env, epochs=runs, steps=100, pause=0.1, render=True)
 
 	print()
-	print("In {} test runs, the learner found the goal {} percent of the time.".format(runs, np.sum(rewards)/runs))
+	# print("In {} test runs, the learner found the goal {} percent of the time.".format(runs, np.sum(rewards)/runs))
 	print("The average number of steps was {}".format(np.mean(num_steps)))
