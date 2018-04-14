@@ -97,7 +97,7 @@ class QLearnContinuous(object):
 		y_train = np.array(y_train)
 		return X_train, y_train
 
-	def train(self, env, buffer=80, batch_size=40, epochs=1000, steps=100, eps_range=[1.0, 0.1], y=0.9, eps_decay=0.995):
+	def train(self, env, buffer=80, batch_size=40, epochs=1000, steps=100, eps_range=[1.0, 0.02], y=0.9):
 		"""
 		Q Learn in the input environment for a set number of epochs and steps.
 		Input parameters include:
@@ -106,12 +106,13 @@ class QLearnContinuous(object):
 		epsilon = eps_range[0]
 		self.buffer = buffer
 		self.y = y
+		eps_decay = (eps_range[0] - eps_range[1])/eps_range[1]
 		for epoch in tqdm(range(epochs), desc="training"):
 			# Initial state observation on reset 
 			s = env.reset()
 			if self.onehot:
 				s = to_categorical(s, num_classes=self.s_size)
-				s = np.array(s)
+			s = np.array(s)
 			for step in range(steps):
 				# Determine optimal action
 				a = self.action(s, epsilon)
@@ -120,8 +121,8 @@ class QLearnContinuous(object):
 				# Remember the experience
 				if self.onehot:
 					s1 = to_categorical(s1, num_classes=self.s_size)
-					s1 = np.array(s1)
-
+				
+				s1 = np.array(s1)
 				self._remember([s, a, r, s1, done])
 
 				# Train the model if there are enough memories
@@ -134,7 +135,7 @@ class QLearnContinuous(object):
 				if done:
 					break
 			if epsilon > eps_range[1]:
-				epsilon *= eps_decay
+				epsilon = eps_range[0]/(1 + eps_decay*epoch/epochs)
 
 		return self
 
@@ -149,6 +150,7 @@ class QLearnContinuous(object):
 			if self.onehot:
 				s = to_categorical(s, num_classes=self.s_size)
 			rsum = 0
+			s = np.array(s)
 			for step in range(steps):
 				if render:
 					env.render()
@@ -157,6 +159,7 @@ class QLearnContinuous(object):
 				rsum += r
 				if self.onehot:
 					s1 = to_categorical(s1, num_classes=self.s_size)
+				s1 = np.array(s1)
 				s = s1
 				time.sleep(pause)
 				if done:
@@ -199,20 +202,22 @@ if __name__ == "__main__":
 		reward_threshold=0.78, # optimum = .8196
 	)	
 
-	grid_size = 4
+	# grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
 	# env = gym.make("FrozenLakeNotSlippery-v0")
-	env = gym.make('CartPole-v0')
+	# env = gym.make('CartPole-v0')
+	env = gym.make('Blackjack-v0')
 	a_size = env.action_space.n
 	# s_size = env.observation_space.n
-	s_size = np.shape(env.observation_space)[0]
+	# s_size = np.shape(env.observation_space)[0]
+	s_size = 3
 	print("Calling QLearnContinuous...")
-	QL = QLearnContinuous(s_size, a_size, [24], onehot=False)
+	QL = QLearnContinuous(s_size, a_size, [64], onehot=False)
 	print("Qlearner initialized.")
-	rList = QL.train(env, epochs=1000, steps=250, eps_range=[1.0, 0.01], eps_decay=0.998)
-	# QL.load('Qlearn_500')
+	# rList = QL.train(env, epochs=3000, steps=7)
+	QL.load('QlearnBlackJack_3000')
 	print("done training.")
-	QL.save('Qlearn_1000')
+	# QL.save('QlearnBlackJack_3000')
 	print()
 	env.reset()
 	# env.render()
@@ -228,9 +233,15 @@ if __name__ == "__main__":
 	# 	print('{}'.format(row))
 
 	# Test the trained QLearner
-	runs = 5
-	rewards, num_steps = QL.simulate(env, epochs=runs, steps=100, pause=0.1, render=True)
-
-	print()
-	# print("In {} test runs, the learner found the goal {} percent of the time.".format(runs, np.sum(rewards)/runs))
-	print("The average number of steps was {}".format(np.mean(num_steps)))
+	runs = 5000
+	rewards, num_steps = QL.simulate(env, epochs=runs, steps=7, pause=0.0, render=False)
+	rewards = np.array(rewards)
+	num_steps = np.array(num_steps)
+	print(rewards[0:25])
+	sum_rewards = np.sum(rewards == 1)
+	sum_draws = np.sum(rewards == 0)
+	sum_losses = np.sum(rewards == -1)
+	print("In {} test runs, the learner won at blackjack {} percent of the time.".format(runs, (sum_rewards/runs)*100))
+	print("{} percent of games were draws.".format(100*sum_draws/runs))
+	print("{} percent of the games were losses".format(100*sum_losses/runs))
+	# print("The average number of steps was {}".format(np.mean(num_steps)))
