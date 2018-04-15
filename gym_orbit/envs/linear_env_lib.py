@@ -13,6 +13,8 @@ import math
 import gym
 import numpy as np
 from gym import spaces
+import sys
+sys.path.append('../')
 import StateLibrary as sl
 
 
