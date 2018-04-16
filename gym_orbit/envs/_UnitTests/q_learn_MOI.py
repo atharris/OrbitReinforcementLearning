@@ -45,6 +45,6 @@ for ep in range(0,num_episodes):
         agent.replay(batch_size)
 
 #   Save the trained model
-agent.save('dqn_test.h5')
+agent.save('moi_test.h5')
 
 
