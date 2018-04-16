@@ -35,6 +35,7 @@ class mode_options:
         self.cov_noise = 0.001*np.identity(6)
         self.error_stm = -0.001*np.identity(6)
         self.obs_limit = 1.0 #  Converged estimator accuracy in meters
+        self.goal_orbel = om.ClassicElements()
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -100,6 +101,17 @@ def sc_propagate(input_state,  mode_options):
     #input_state.state_vec = integrator.y
     input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
 
+    return input_state
+
+def sc_htransfer_propagate(input_state,  mode_options):
+
+    init_vec = input_state.state_vec
+    elems = om.rv2elem(om.MU_MARS, init_vec[:3], init_vec[3:6])
+
+    if elems.f < 1E-5:
+        input_state = resultOrbit(input_state, mode_options.goal_orbel)
+
+    input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
 
     return input_state
 
@@ -213,5 +225,36 @@ def controlMode(est_state, ref_state, true_state, mode_options):
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use
 
+def thrustMode(est_state, ref_state, true_state, mode_options):
+    '''
+        Function to simulate a period of orbit determination.
+        :param est_state: Estimated state at the beginning of the mode.
+        :param ref_state: Internal reference state at the beginning of the mode.
+        :param true_state: "Ground truth" state the spacecraft acts on and observes.
+        :param des_state: The desired end state of the spacecraft.
 
+        :return est_state: Updated state estimate at the end of the mode.
+        :return ref_state: Propagated reference state at the end of the mode.
+        :return true_state: propagated truth state at the end of the mode.
+        '''
+    tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
+    k1 = 0.01*np.identity(3)
+    k2 = 0.1*np.identity(3)
+
+    control_use = 0
+    ref_options = copy.deepcopy(mode_options)
+    ref_options.acc = np.zeros([3,])
+
+    for ind in range(0, len(tvec)):
+        #   Compute control acceleration:
+        mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
+        control_use = control_use + abs(np.linalg.norm(mode_options.acc))
+        #   Propagate truth state forward:
+        true_state = truth_propagate(true_state, mode_options)
+        #   Propagate reference state forward:
+        ref_state = sc_propagate(ref_state, ref_options)
+        est_state = est_propagate(est_state, mode_options)
+
+    mode_options.acc = np.zeros([3,])
+    return est_state, ref_state, true_state, control_use
 

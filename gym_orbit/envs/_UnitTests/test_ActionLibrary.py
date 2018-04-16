@@ -57,6 +57,15 @@ def set_moi_ic():
     mode_options.rp = om.REQ_MARS
     mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
 
+    desiredElements = om.ClassicElements()
+    desiredElements.a = 1000
+    desiredElements.e = 1.
+    desiredElements.Omega = 1.
+    desiredElements.omega = 1.
+    desiredElements.i = 1.
+    desiredElements.f = 1.
+    mode_options.goal_orbel = desiredElements
+
     true_orbel = om.ClassicElements()
     true_orbel.a = 100000.0
     true_orbel.e = 0.8
@@ -132,7 +141,7 @@ def test_propagators():
 
     ref_state, est_state, true_state, mode_options = set_default_ic()
 
-    n_steps = 100000
+    n_steps = 10000
     ref_hist = np.zeros([6,n_steps])
     ref_hist[:,0] = ref_state.state_vec
     est_hist = np.zeros([6,n_steps])
@@ -171,7 +180,7 @@ def test_DV():
     true_hist[:,0] = true_state.state_vec
 
     for ind in range(1,n_steps):
-        ref_state = al.sc_propagate(ref_state, mode_options)
+        ref_state = al.sc_htransfer_propagate(ref_state, mode_options)
         ref_hist[:,ind] = ref_state.state_vec
 
         true_state = al.truth_propagate(true_state, mode_options)
@@ -181,21 +190,10 @@ def test_DV():
         est_hist[:, ind] = est_state.state_vec
 
         if ind == int(n_steps/2):
-            desiredElements = om.ClassicElements()
-            desiredElements.a = 1000
-            desiredElements.e = 1.
-            desiredElements.Omega = 1.
-            desiredElements.omega = 1.
-            desiredElements.i = 1.
-            desiredElements.f = 1.
-
-            ref_state = al.resultOrbit(ref_state, desiredElements)
-            ref_hist[:, ind] = ref_state.state_vec
-
-            true_state = al.resultOrbit(true_state, desiredElements)
+            true_state = al.resultOrbit(true_state, mode_options.goal_orbel)
             true_hist[:, ind] = true_state.state_vec
 
-            est_state = al.resultOrbit(est_state, desiredElements)
+            est_state = al.resultOrbit(est_state, mode_options.goal_orbel)
             est_hist[:, ind] = est_state.state_vec
 
     ref_fig = orbit_plot(ref_hist)
