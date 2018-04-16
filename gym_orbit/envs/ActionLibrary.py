@@ -109,8 +109,8 @@ def sc_htransfer_propagate(input_state,  mode_options):
     init_vec = input_state.state_vec
     elems = om.rv2elem(om.MU_MARS, init_vec[:3], init_vec[3:6])
 
-    if elems.f < 1E-2 and input_state.burns < mode_options.burn_number:
-        input_state = resultOrbit(input_state, mode_options.goal_orbel)
+    if elems.f < 1E-3 and input_state.burns < mode_options.burn_number:
+        input_state, DV = resultOrbit(input_state, mode_options.goal_orbel)
         input_state.burns += 1
 
     input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
@@ -164,7 +164,7 @@ def resultOrbit(input_state, desired_orbit):
 
     input_state.state_vec += thrust.state_vec
 
-    return input_state
+    return input_state, DV
 
 def observationMode(est_state, ref_state, true_state, mode_options):
     '''
@@ -240,22 +240,21 @@ def thrustMode(est_state, ref_state, true_state, mode_options):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
-    k1 = 0.01*np.identity(3)
-    k2 = 0.1*np.identity(3)
 
-    control_use = 0
     ref_options = copy.deepcopy(mode_options)
     ref_options.acc = np.zeros([3,])
 
+    #   Compute control acceleration:
+    true_state, DVtruth = resultOrbit(est_state, mode_options.goal_orbel)
+    est_state, DVest = resultOrbit(est_state, mode_options.goal_orbel)
+    control_use = DVest
+
     for ind in range(0, len(tvec)):
-        #   Compute control acceleration:
-        mode_options.acc = lyap_controller(ref_state.state_vec, est_state.state_vec, k1, k2, mode_options)
-        control_use = control_use + abs(np.linalg.norm(mode_options.acc))
-        #   Propagate truth state forward:
+        #   Propagate est/truth state forward after DV
         true_state = truth_propagate(true_state, mode_options)
-        #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
+        #   Propagate reference state forward with transfer dynamics
+        ref_state = sc_htransfer_propagate(ref_state, ref_options)
 
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use
