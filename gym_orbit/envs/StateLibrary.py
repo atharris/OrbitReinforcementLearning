@@ -14,6 +14,7 @@ class linear_states():
     '''
     def __init__(self):
         self.state_vec = np.array([0,0])
+        self.burns = 0
         self.error_mode = 0
 
 class rv_state():
@@ -22,6 +23,7 @@ class rv_state():
     '''
     def __init__(self):
         self.state_vec = np.zeros([6,])
+        self.burns = 0
 
 class observed_state():
     '''
@@ -29,4 +31,5 @@ class observed_state():
     '''
     def __init__(self):
         self.state_vec = np.zeros([6,])
+        self.burns = 0
         self.covariance = np.zeros([6,6])

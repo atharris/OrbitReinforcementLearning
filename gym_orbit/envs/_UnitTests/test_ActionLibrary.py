@@ -65,6 +65,7 @@ def set_moi_ic():
     desiredElements.i = 1.
     desiredElements.f = 1.
     mode_options.goal_orbel = desiredElements
+    mode_options.burn_number = 1
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 100000.0

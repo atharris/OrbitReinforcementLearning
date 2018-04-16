@@ -35,6 +35,7 @@ class mode_options:
         self.cov_noise = 0.001*np.identity(6)
         self.error_stm = -0.001*np.identity(6)
         self.obs_limit = 1.0 #  Converged estimator accuracy in meters
+        self.burn_number = 1 # Allow one DV burn by default
         self.goal_orbel = om.ClassicElements()
 
 def propModel(t,y,odeOptions):
@@ -108,8 +109,9 @@ def sc_htransfer_propagate(input_state,  mode_options):
     init_vec = input_state.state_vec
     elems = om.rv2elem(om.MU_MARS, init_vec[:3], init_vec[3:6])
 
-    if elems.f < 1E-5:
+    if elems.f < 1E-2 and input_state.burns < mode_options.burn_number:
         input_state = resultOrbit(input_state, mode_options.goal_orbel)
+        input_state.burns += 1
 
     input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
 
