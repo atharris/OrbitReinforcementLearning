@@ -50,7 +50,7 @@ def set_default_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -80,6 +80,35 @@ def set_default_ic():
     true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
     est_state.state_vec[0:3], est_state.state_vec[3:] = om.elem2rv(om.MU_MARS, est_orbel)
     return ref_state, est_state, true_state, mode_options
+
+def test_propagators():
+
+    ref_state, est_state, true_state, mode_options = set_default_ic()
+
+    n_steps = 100000
+    ref_hist = np.zeros([6,n_steps])
+    ref_hist[:,0] = ref_state.state_vec
+    est_hist = np.zeros([6,n_steps])
+    est_hist[:,0] = est_state.state_vec
+    true_hist = np.zeros([6,n_steps])
+    true_hist[:,0] = true_state.state_vec
+
+    for ind in range(1,n_steps):
+        ref_state = al.sc_propagate(ref_state, mode_options)
+        ref_hist[:,ind] = ref_state.state_vec
+
+        true_state = al.truth_propagate(true_state, mode_options)
+        true_hist[:, ind] = true_state.state_vec
+
+        est_state = al.est_propagate(est_state, mode_options)
+        est_hist[:, ind] = est_state.state_vec
+
+
+    ref_fig = orbit_plot(ref_hist)
+    est_fig = orbit_plot(est_hist)
+    true_fig = orbit_plot(true_hist)
+
+    plt.show()
 
 def test_propagators():
 
