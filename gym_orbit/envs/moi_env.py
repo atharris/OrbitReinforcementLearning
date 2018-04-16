@@ -14,44 +14,53 @@ import StateLibrary as sl
 import ActionLibrary as al
 import orbitalMotion as om
 
-
-def set_default_ic():
+def set_moi_ic():
     est_state = sl.observed_state()
     true_state = sl.rv_state()
     ref_state = sl.rv_state()
 
     mode_options = al.mode_options()
     mode_options.dt = 1.0
-    mode_options.mode_length = 5.*60.0
+    mode_options.mode_length = 10.*60.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = om.J2_MARS
+    mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = np.expm(mode_options.dt*(-0.1*np.identity(6)))
-    mode_options.obs_limit = 0.05
+    mode_options.burn_number = 1
+    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+
+    desiredElements = om.ClassicElements()
+    desiredElements.a = 1000
+    desiredElements.e = 1.
+    desiredElements.Omega = 1.
+    desiredElements.omega = 1.
+    desiredElements.i = 1.
+    desiredElements.f = 1.
+    mode_options.goal_orbel = desiredElements
+    mode_options.insertion_mode = True
 
     true_orbel = om.ClassicElements()
-    true_orbel.a = 7100.0
-    true_orbel.e = 0.01
+    true_orbel.a = 100000.0
+    true_orbel.e = 0.8
     true_orbel.i = 0.0
     true_orbel.omega = 0.0
     true_orbel.Omega = 0.0
-    true_orbel.f = 0.00
+    true_orbel.f = -2.
 
     ref_orbel = om.ClassicElements()
-    ref_orbel.a = 7100.0
-    ref_orbel.e = 0.01
+    ref_orbel.a = 100000.0
+    ref_orbel.e = 0.8
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
     ref_orbel.Omega = 0.0
-    ref_orbel.f = 0.01
+    ref_orbel.f = -2.
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 7101.0
-    est_orbel.e = 0.01
+    est_orbel.a = 100010.0
+    est_orbel.e = 0.8
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
     est_orbel.Omega = 0.0
-    est_orbel.f = 0.000000
+    est_orbel.f = -2.
 
     ref_state.state_vec[0:3], ref_state.state_vec[3:] = om.elem2rv(om.MU_MARS, ref_orbel)
     true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
@@ -74,7 +83,7 @@ class pls_work_env(gym.Env):
         self.max_length = 60 # Specify a maximum number of timesteps
 
         #   Set up options, constants for this environment
-        self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
+        self.ref_state, self.est_state, self.true_state, self.mode_options = set_moi_ic()
         self.control_use = 0.0
 
         #   Set up cost constants
@@ -89,7 +98,7 @@ class pls_work_env(gym.Env):
                          ])
         self.observation_space = spaces.Box(low, high)
 
-        self.action_space = spaces.Discrete(2)
+        self.action_space = spaces.Discrete(3)
         # Store what the agent tried
         self.curr_episode = -1
         self.action_episode_memory = []
@@ -150,6 +159,11 @@ class pls_work_env(gym.Env):
             #   Control Step
             self.est_state, self.ref_state, self.true_state, self.control_use = al.controlMode(self.est_state, self.ref_state,
                                                                                  self.true_state, self.mode_options)
+
+        if action ==2:
+            #   DV Thrust Step
+            self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
+                                                                                 self.true_state, self.mode_options)
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):
@@ -168,7 +182,7 @@ class pls_work_env(gym.Env):
         -------
         observation (object): the initial observation of the space.
         """
-        self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
+        self.ref_state, self.est_state, self.true_state, self.mode_options = set_moi_ic()
         self.control_use = 0.0
         self.action_episode_memory.append([])
         self.episode_over = False

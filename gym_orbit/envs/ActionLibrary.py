@@ -37,6 +37,7 @@ class mode_options:
         self.obs_limit = 1.0 #  Converged estimator accuracy in meters
         self.burn_number = 1 # Allow one DV burn by default
         self.goal_orbel = om.ClassicElements()
+        self.insertion_mode = False
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -185,7 +186,10 @@ def observationMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, mode_options)
+        if mode_options.insertion_mode:
+            ref_state = sc_htransfer_propagate(ref_state, mode_options)
+        else:
+            ref_state = sc_propagate(ref_state, mode_options)
         #   Generate measurement of true state:                                                         
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
 
@@ -221,7 +225,10 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, ref_options)
+        if mode_options.insertion_mode:
+            ref_state = sc_htransfer_propagate(ref_state, ref_options)
+        else:
+            ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
 
     mode_options.acc = np.zeros([3,])
