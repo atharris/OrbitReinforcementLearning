@@ -30,7 +30,7 @@ def set_moi_ic():
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
-    desiredElements.e = 1.
+    desiredElements.e = 0.01
     desiredElements.Omega = 1.
     desiredElements.omega = 1.
     desiredElements.i = 1.
@@ -55,7 +55,7 @@ def set_moi_ic():
     ref_orbel.f = -2.
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 100010.0
+    est_orbel.a = 100000.0
     est_orbel.e = 0.8
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
@@ -68,7 +68,7 @@ def set_moi_ic():
     return ref_state, est_state, true_state, mode_options
 
 
-class pls_work_env(gym.Env):
+class mars_orbit_insertion(gym.Env):
     """
     Define a simple orbit environment.
     The environment defines which actions can be taken at which point and
@@ -155,6 +155,7 @@ class pls_work_env(gym.Env):
             self.est_state, self.ref_state, self.true_state = al.observationMode(self. est_state, self. ref_state,
                                                                               self.true_state, self.mode_options)
             self.control_use = 0.0
+
         if action == 1:
             #   Control Step
             self.est_state, self.ref_state, self.true_state, self.control_use = al.controlMode(self.est_state, self.ref_state,
@@ -164,6 +165,7 @@ class pls_work_env(gym.Env):
             #   DV Thrust Step
             self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
                                                                                  self.true_state, self.mode_options)
+            print 'Thrust cost : ' , self.control_use
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):
