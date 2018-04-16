@@ -135,21 +135,22 @@ def resultOrbit(input_state, desired_orbit):
     :return: oe : Orbital Elements of the resulting orbit (instantiation of ClassicElements class)
 
     '''
-    assert isinstance(desired_orbit, om.ClassicElements)
-    assert np.len(input_state)==6
+    assert np.shape(input_state.state_vec)[0] == 6
 
-    r_des, v_des = om.elem2rv_parab(desired_orbit)
+    r_des, v_des = om.elem2rv_parab(om.MU_MARS, desired_orbit)
 
-    r1 = np.linalg.norm(input_state[0:3])
+    r1 = np.linalg.norm(input_state.state_vec[0:3])
     r2 = np.linalg.norm(r_des)
+
     DV = np.sqrt(om.MU_MARS/r1)*(np.sqrt(2*r2/(r1+r2))-1.)
 
-    thrust = np.zeros(len(input_state))
-    thrust[3:6] = -DV*input_state[3:6]/np.linalg.norm(input_state[3:6])
 
-    new_state = input_state + thrust
+    thrust = StateLib.rv_state()
+    thrust.state_vec[3:6] = DV*input_state.state_vec[3:6]/np.linalg.norm(input_state.state_vec[3:6])
 
-    return om.rv2elem_parab(om.MU_MARS, new_state[0:3], new_state[3:6])
+    input_state.state_vec += thrust.state_vec
+
+    return input_state
 
 def observationMode(est_state, ref_state, true_state, mode_options):
     '''

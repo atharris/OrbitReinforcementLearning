@@ -5,7 +5,10 @@ import numpy as np
 import scipy as sci
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
+import sys
+sys.path.append('..')
 from matplotlib import pyplot as plt
+import orbitalMotion as om
 
 def orbit_plot(rv_state):
     fig = plt.figure()
@@ -110,11 +113,11 @@ def test_propagators():
 
     plt.show()
 
-def test_propagators():
+def test_DV():
 
     ref_state, est_state, true_state, mode_options = set_default_ic()
 
-    n_steps = 100000
+    n_steps = 1000
     ref_hist = np.zeros([6,n_steps])
     ref_hist[:,0] = ref_state.state_vec
     est_hist = np.zeros([6,n_steps])
@@ -132,6 +135,23 @@ def test_propagators():
         est_state = al.est_propagate(est_state, mode_options)
         est_hist[:, ind] = est_state.state_vec
 
+        if ind == int(n_steps/2):
+            desiredElements = om.ClassicElements()
+            desiredElements.a = 750
+            desiredElements.e = 1
+            desiredElements.Omega = 1.
+            desiredElements.omega = 1.
+            desiredElements.i = 1.
+            desiredElements.f = 1.
+
+            ref_state = al.resultOrbit(ref_state, desiredElements)
+            ref_hist[:, ind] = ref_state.state_vec
+
+            true_state = al.resultOrbit(true_state, desiredElements)
+            true_hist[:, ind] = true_state.state_vec
+
+            est_state = al.resultOrbit(est_state, desiredElements)
+            est_hist[:, ind] = est_state.state_vec
 
     ref_fig = orbit_plot(ref_hist)
     est_fig = orbit_plot(est_hist)
@@ -198,6 +218,6 @@ def test_ctrlMode():
 if __name__ == "__main__":
     #test_propagators()
     #test_obsMode()
-    test_ctrlMode()
-
+    # test_ctrlMode()
+    test_DV()
 
