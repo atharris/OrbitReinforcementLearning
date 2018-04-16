@@ -96,6 +96,9 @@ class pls_work_env(gym.Env):
         self.curr_step = 0
         self.episode_over = False
 
+    def _seed(self):
+        return
+
     def _step(self, action):
         """
         The agent takes a step in the environment.
