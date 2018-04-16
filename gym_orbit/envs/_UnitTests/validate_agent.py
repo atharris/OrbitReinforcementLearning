@@ -12,6 +12,7 @@ state_size = 12
 act_space = 2
 agent = dqn.DQNAgent(state_size, act_space)
 agent.load('dqn_test.h5')
+agent.epsilon = 0.0
 
 estState = np.zeros([6,env.max_length+1])
 trueState = np.zeros([6,env.max_length+1])
