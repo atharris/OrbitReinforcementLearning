@@ -14,6 +14,7 @@ def orbit_plot(rv_state):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot(rv_state[0,:], rv_state[1,:], rv_state[2,:])
+    ax.scatter([0], [0], [0], color="r", s=100)
     return fig
 
 def state_plot(rv_state):
@@ -41,6 +42,49 @@ def states_plot(true_state, ref_state, est_state):
         axarr[plotInd].grid()
     plt.legend()
     axarr[-1].set_xlabel('Simulation Timestep')
+
+
+def set_moi_ic():
+    est_state = sl.observed_state()
+    true_state = sl.rv_state()
+    ref_state = sl.rv_state()
+
+    mode_options = al.mode_options()
+    mode_options.dt = 1.0
+    mode_options.mode_length = 10.*60.0
+    mode_options.mu = om.MU_MARS
+    mode_options.j2 = 0#om.J2_MARS
+    mode_options.rp = om.REQ_MARS
+    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+
+    true_orbel = om.ClassicElements()
+    true_orbel.a = 100000.0
+    true_orbel.e = 0.8
+    true_orbel.i = 0.0
+    true_orbel.omega = 0.0
+    true_orbel.Omega = 0.0
+    true_orbel.f = -2.
+
+    ref_orbel = om.ClassicElements()
+    ref_orbel.a = 100000.0
+    ref_orbel.e = 0.8
+    ref_orbel.i = 0.0
+    ref_orbel.omega = 0.0
+    ref_orbel.Omega = 0.0
+    ref_orbel.f = -2.
+
+    est_orbel = om.ClassicElements()
+    est_orbel.a = 100010.0
+    est_orbel.e = 0.8
+    est_orbel.i = 0.0
+    est_orbel.omega = 0.0
+    est_orbel.Omega = 0.0
+    est_orbel.f = -2.
+
+    ref_state.state_vec[0:3], ref_state.state_vec[3:] = om.elem2rv(om.MU_MARS, ref_orbel)
+    true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
+    est_state.state_vec[0:3], est_state.state_vec[3:] = om.elem2rv(om.MU_MARS, est_orbel)
+    return ref_state, est_state, true_state, mode_options
 
 def set_default_ic():
     est_state = sl.observed_state()
@@ -115,9 +159,10 @@ def test_propagators():
 
 def test_DV():
 
-    ref_state, est_state, true_state, mode_options = set_default_ic()
+    # ref_state, est_state, true_state, mode_options = set_default_ic()
+    ref_state, est_state, true_state, mode_options = set_moi_ic()
 
-    n_steps = 1000
+    n_steps = 100000
     ref_hist = np.zeros([6,n_steps])
     ref_hist[:,0] = ref_state.state_vec
     est_hist = np.zeros([6,n_steps])
@@ -137,8 +182,8 @@ def test_DV():
 
         if ind == int(n_steps/2):
             desiredElements = om.ClassicElements()
-            desiredElements.a = 750
-            desiredElements.e = 1
+            desiredElements.a = 1000
+            desiredElements.e = 1.
             desiredElements.Omega = 1.
             desiredElements.omega = 1.
             desiredElements.i = 1.
