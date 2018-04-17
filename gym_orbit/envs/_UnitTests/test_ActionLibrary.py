@@ -5,12 +5,16 @@ import numpy as np
 import scipy as sci
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
+import sys
+sys.path.append('..')
 from matplotlib import pyplot as plt
+import orbitalMotion as om
 
 def orbit_plot(rv_state):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot(rv_state[0,:], rv_state[1,:], rv_state[2,:])
+    ax.scatter([0], [0], [0], color="r", s=100)
     return fig
 
 def state_plot(rv_state):
@@ -39,6 +43,60 @@ def states_plot(true_state, ref_state, est_state):
     plt.legend()
     axarr[-1].set_xlabel('Simulation Timestep')
 
+
+def set_moi_ic():
+    est_state = sl.observed_state()
+    true_state = sl.rv_state()
+    ref_state = sl.rv_state()
+
+    mode_options = al.mode_options()
+    mode_options.dt = 1.0
+    mode_options.mode_length = 10.*60.0
+    mode_options.mu = om.MU_MARS
+    mode_options.j2 = 0#om.J2_MARS
+    mode_options.rp = om.REQ_MARS
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
+
+    desiredElements = om.ClassicElements()
+    desiredElements.a = 1000
+    desiredElements.e = 1.
+    desiredElements.Omega = 1.
+    desiredElements.omega = 1.
+    desiredElements.i = 1.
+    desiredElements.f = 1.
+    mode_options.goal_orbel = desiredElements
+    mode_options.burn_number = 1
+    mode_options.insertion_mode = True
+
+    true_orbel = om.ClassicElements()
+    true_orbel.a = 100000.0
+    true_orbel.e = 0.8
+    true_orbel.i = 0.0
+    true_orbel.omega = 0.0
+    true_orbel.Omega = 0.0
+    true_orbel.f = -2.
+
+    ref_orbel = om.ClassicElements()
+    ref_orbel.a = 100000.0
+    ref_orbel.e = 0.8
+    ref_orbel.i = 0.0
+    ref_orbel.omega = 0.0
+    ref_orbel.Omega = 0.0
+    ref_orbel.f = -2.
+
+    est_orbel = om.ClassicElements()
+    est_orbel.a = 100010.0
+    est_orbel.e = 0.8
+    est_orbel.i = 0.0
+    est_orbel.omega = 0.0
+    est_orbel.Omega = 0.0
+    est_orbel.f = -2.
+
+    ref_state.state_vec[0:3], ref_state.state_vec[3:] = om.elem2rv(om.MU_MARS, ref_orbel)
+    true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
+    est_state.state_vec[0:3], est_state.state_vec[3:] = om.elem2rv(om.MU_MARS, est_orbel)
+    return ref_state, est_state, true_state, mode_options
+
 def set_default_ic():
     est_state = sl.observed_state()
     true_state = sl.rv_state()
@@ -50,7 +108,7 @@ def set_default_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -85,7 +143,7 @@ def test_propagators():
 
     ref_state, est_state, true_state, mode_options = set_default_ic()
 
-    n_steps = 100000
+    n_steps = 10000
     ref_hist = np.zeros([6,n_steps])
     ref_hist[:,0] = ref_state.state_vec
     est_hist = np.zeros([6,n_steps])
@@ -110,9 +168,10 @@ def test_propagators():
 
     plt.show()
 
-def test_propagators():
+def test_DV():
 
-    ref_state, est_state, true_state, mode_options = set_default_ic()
+    # ref_state, est_state, true_state, mode_options = set_default_ic()
+    ref_state, est_state, true_state, mode_options = set_moi_ic()
 
     n_steps = 100000
     ref_hist = np.zeros([6,n_steps])
@@ -123,7 +182,7 @@ def test_propagators():
     true_hist[:,0] = true_state.state_vec
 
     for ind in range(1,n_steps):
-        ref_state = al.sc_propagate(ref_state, mode_options)
+        ref_state, DVref = al.sc_htransfer_propagate(ref_state, mode_options)
         ref_hist[:,ind] = ref_state.state_vec
 
         true_state = al.truth_propagate(true_state, mode_options)
@@ -132,6 +191,12 @@ def test_propagators():
         est_state = al.est_propagate(est_state, mode_options)
         est_hist[:, ind] = est_state.state_vec
 
+        if ind == int(n_steps/2):
+            true_state, DVtruth = al.resultOrbit(true_state, mode_options.goal_orbel)
+            true_hist[:, ind] = true_state.state_vec
+
+            est_state, DVest = al.resultOrbit(est_state, mode_options.goal_orbel)
+            est_hist[:, ind] = est_state.state_vec
 
     ref_fig = orbit_plot(ref_hist)
     est_fig = orbit_plot(est_hist)
@@ -198,6 +263,6 @@ def test_ctrlMode():
 if __name__ == "__main__":
     #test_propagators()
     #test_obsMode()
-    test_ctrlMode()
-
+    # test_ctrlMode()
+    test_DV()
 

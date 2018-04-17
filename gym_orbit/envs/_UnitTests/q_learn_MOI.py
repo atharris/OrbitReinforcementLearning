@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import DQN_Agent as dqn
 import os
 
-env = gym.make('stationkeep_orbit-v0')
+env = gym.make('mars_orbit_insertion-v0')
 
 #   Test action space
 state_size = 12
@@ -45,6 +45,6 @@ for ep in range(0,num_episodes):
         agent.replay(batch_size)
 
 #   Save the trained model
-agent.save('dqn_test.h5')
+agent.save('moi_test.h5')
 
 

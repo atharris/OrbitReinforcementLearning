@@ -35,6 +35,9 @@ class mode_options:
         self.cov_noise = 0.001*np.identity(6)
         self.error_stm = -0.001*np.identity(6)
         self.obs_limit = 1.0 #  Converged estimator accuracy in meters
+        self.burn_number = 1 # Allow one DV burn by default
+        self.goal_orbel = om.ClassicElements()
+        self.insertion_mode = False
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -100,6 +103,18 @@ def sc_propagate(input_state,  mode_options):
     #input_state.state_vec = integrator.y
     input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
 
+    return input_state
+
+def sc_htransfer_propagate(input_state,  mode_options):
+
+    init_vec = input_state.state_vec
+    elems = om.rv2elem(om.MU_MARS, init_vec[:3], init_vec[3:6])
+
+    if elems.f < 1E-3 and input_state.burns < mode_options.burn_number:
+        input_state, DV = resultOrbit(input_state, mode_options.goal_orbel)
+        input_state.burns += 1
+
+    input_state.state_vec = rk4(propModel, 0, mode_options.dt, init_vec, mode_options)
 
     return input_state
 
@@ -115,6 +130,7 @@ def lyap_controller(ref_state, sc_state, K1, K2, mode_options):
 
     tmp_opts = copy.deepcopy(mode_options)
     tmp_opts.acc = np.zeros([3,])
+
     refAcc = propModel(0, ref_state, tmp_opts)
     scAcc = propModel(0, sc_state, tmp_opts)
 
@@ -135,21 +151,22 @@ def resultOrbit(input_state, desired_orbit):
     :return: oe : Orbital Elements of the resulting orbit (instantiation of ClassicElements class)
 
     '''
-    assert isinstance(desired_orbit, om.ClassicElements)
-    assert np.len(input_state)==6
+    assert np.shape(input_state.state_vec)[0] == 6
 
-    r_des, v_des = om.elem2rv_parab(desired_orbit)
+    r_des, v_des = om.elem2rv_parab(om.MU_MARS, desired_orbit)
 
-    r1 = np.linalg.norm(input_state[0:3])
+    r1 = np.linalg.norm(input_state.state_vec[0:3])
     r2 = np.linalg.norm(r_des)
+
     DV = np.sqrt(om.MU_MARS/r1)*(np.sqrt(2*r2/(r1+r2))-1.)
 
-    thrust = np.zeros(len(input_state))
-    thrust[3:6] = -DV*input_state[3:6]/np.linalg.norm(input_state[3:6])
 
-    new_state = input_state + thrust
+    thrust = StateLib.rv_state()
+    thrust.state_vec[3:6] = DV*input_state.state_vec[3:6]/np.linalg.norm(input_state.state_vec[3:6])
 
-    return om.rv2elem_parab(om.MU_MARS, new_state[0:3], new_state[3:6])
+    input_state.state_vec += thrust.state_vec
+
+    return input_state, DV
 
 def observationMode(est_state, ref_state, true_state, mode_options):
     '''
@@ -170,9 +187,13 @@ def observationMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, mode_options)
-        #   Generate measurement of true state:                                                         
+        if mode_options.insertion_mode:
+            ref_state = sc_htransfer_propagate(ref_state, mode_options)
+        else:
+            ref_state = sc_propagate(ref_state, mode_options)
+        #   Generate measurement of true state:
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
+
 
     est_state.state_vec = true_state.state_vec + est_error
     est_state.covariance = mode_options.obs_limit * np.identity(6)
@@ -206,11 +227,45 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        ref_state = sc_propagate(ref_state, ref_options)
+        if mode_options.insertion_mode:
+            ref_state = sc_htransfer_propagate(ref_state, ref_options)
+        else:
+            ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
+
 
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use
 
+def thrustMode(est_state, ref_state, true_state, mode_options):
+    '''
+        Function to simulate a period of orbit determination.
+        :param est_state: Estimated state at the beginning of the mode.
+        :param ref_state: Internal reference state at the beginning of the mode.
+        :param true_state: "Ground truth" state the spacecraft acts on and observes.
+        :param des_state: The desired end state of the spacecraft.
 
+        :return est_state: Updated state estimate at the end of the mode.
+        :return ref_state: Propagated reference state at the end of the mode.
+        :return true_state: propagated truth state at the end of the mode.
+        '''
+    tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
+
+    ref_options = copy.deepcopy(mode_options)
+    ref_options.acc = np.zeros([3,])
+
+    #   Compute control acceleration:
+    true_state, DVtruth = resultOrbit(est_state, mode_options.goal_orbel)
+    est_state, DVest = resultOrbit(est_state, mode_options.goal_orbel)
+    control_use = DVest
+
+    for ind in range(0, len(tvec)):
+        #   Propagate est/truth state forward after DV
+        true_state = truth_propagate(true_state, mode_options)
+        est_state = est_propagate(est_state, mode_options)
+        #   Propagate reference state forward with transfer dynamics
+        ref_state = sc_htransfer_propagate(ref_state, ref_options)
+
+    mode_options.acc = np.zeros([3,])
+    return est_state, ref_state, true_state, control_use
 
