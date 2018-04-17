@@ -55,7 +55,7 @@ def set_moi_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
@@ -108,7 +108,7 @@ def set_default_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0

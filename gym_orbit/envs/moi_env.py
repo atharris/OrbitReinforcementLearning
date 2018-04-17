@@ -13,6 +13,7 @@ from gym import spaces
 import StateLibrary as sl
 import ActionLibrary as al
 import orbitalMotion as om
+import math
 
 def set_moi_ic():
     est_state = sl.observed_state()
@@ -20,13 +21,13 @@ def set_moi_ic():
     ref_state = sl.rv_state()
 
     mode_options = al.mode_options()
-    mode_options.dt = 1.0
+    mode_options.dt = 1.
     mode_options.mode_length = 10.*60.0
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
     mode_options.burn_number = 1
-    mode_options.error_stm = np.exp(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
@@ -44,7 +45,7 @@ def set_moi_ic():
     true_orbel.i = 0.0
     true_orbel.omega = 0.0
     true_orbel.Omega = 0.0
-    true_orbel.f = -2.
+    true_orbel.f = -0.5
 
     ref_orbel = om.ClassicElements()
     ref_orbel.a = 100000.0
@@ -52,7 +53,7 @@ def set_moi_ic():
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
     ref_orbel.Omega = 0.0
-    ref_orbel.f = -2.
+    ref_orbel.f = -0.5
 
     est_orbel = om.ClassicElements()
     est_orbel.a = 100000.0
@@ -60,11 +61,12 @@ def set_moi_ic():
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
     est_orbel.Omega = 0.0
-    est_orbel.f = -2.
+    est_orbel.f = -0.5
 
     ref_state.state_vec[0:3], ref_state.state_vec[3:] = om.elem2rv(om.MU_MARS, ref_orbel)
     true_state.state_vec[0:3], true_state.state_vec[3:] = om.elem2rv(om.MU_MARS, true_orbel)
     est_state.state_vec[0:3], est_state.state_vec[3:] = om.elem2rv(om.MU_MARS, est_orbel)
+
     return ref_state, est_state, true_state, mode_options
 
 

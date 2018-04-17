@@ -111,11 +111,6 @@ def sc_htransfer_propagate(input_state,  mode_options):
     elems = om.rv2elem(om.MU_MARS, init_vec[:3], init_vec[3:6])
 
     if elems.f < 1E-3 and input_state.burns < mode_options.burn_number:
-
-        print '*****************************************************'
-        print 'ORBIT INSERTION DV IN REF MOTHA FUCKAAAA'
-        print '*****************************************************'
-
         input_state, DV = resultOrbit(input_state, mode_options.goal_orbel)
         input_state.burns += 1
 
@@ -135,12 +130,9 @@ def lyap_controller(ref_state, sc_state, K1, K2, mode_options):
 
     tmp_opts = copy.deepcopy(mode_options)
     tmp_opts.acc = np.zeros([3,])
-    print 'scAcc before ', sc_state
 
     refAcc = propModel(0, ref_state, tmp_opts)
     scAcc = propModel(0, sc_state, tmp_opts)
-
-    print 'scAcc after ', scAcc
 
     posErr = sc_state[0:3] - ref_state[0:3]
     velErr = sc_state[3:] - ref_state[3:]
@@ -199,8 +191,9 @@ def observationMode(est_state, ref_state, true_state, mode_options):
             ref_state = sc_htransfer_propagate(ref_state, mode_options)
         else:
             ref_state = sc_propagate(ref_state, mode_options)
-        #   Generate measurement of true state:                                                         
+        #   Generate measurement of true state:
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
+
 
     est_state.state_vec = true_state.state_vec + est_error
     est_state.covariance = mode_options.obs_limit * np.identity(6)
@@ -239,6 +232,7 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         else:
             ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
+
 
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use
