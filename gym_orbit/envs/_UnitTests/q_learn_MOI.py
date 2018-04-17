@@ -11,7 +11,7 @@ env = gym.make('mars_orbit_insertion-v0')
 
 #   Test action space
 state_size = 12
-act_space = 2
+act_space = 3
 episode_over = False
 agent = dqn.DQNAgent(state_size, act_space)
 
@@ -22,7 +22,7 @@ colorDict = {0:'blue',
              2:'green'}
 
 ind=-1
-num_episodes = 500
+num_episodes = 100
 batch_size = 20
 #   Begin the training iterations
 for ep in range(0,num_episodes):

@@ -167,7 +167,6 @@ class mars_orbit_insertion(gym.Env):
             #   DV Thrust Step
             self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
                                                                                  self.true_state, self.mode_options)
-            print 'Thrust cost : ' , self.control_use
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):

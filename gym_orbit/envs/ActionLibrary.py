@@ -34,7 +34,7 @@ class mode_options:
         self.rp = 0 #   Planet radius
         self.cov_noise = 0.001*np.identity(6)
         self.error_stm = -0.001*np.identity(6)
-        self.obs_limit = 1.0 #  Converged estimator accuracy in meters
+        self.obs_limit = 0. #  Converged estimator accuracy in meters
         self.burn_number = 1 # Allow one DV burn by default
         self.goal_orbel = om.ClassicElements()
         self.insertion_mode = False
