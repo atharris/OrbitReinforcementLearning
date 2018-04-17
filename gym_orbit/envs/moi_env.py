@@ -21,7 +21,7 @@ def set_moi_ic():
     ref_state = sl.rv_state()
 
     mode_options = al.mode_options()
-    mode_options.dt = 1.
+    mode_options.dt = 10.
     mode_options.mode_length = 10.*60.0
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS

@@ -18,10 +18,11 @@ agent = dqn.DQNAgent(state_size, act_space)
 
 
 colorDict = {0:'blue',
-             1:'red'}
+             1:'red',
+             2:'green'}
 
 ind=-1
-num_episodes = 1000
+num_episodes = 500
 batch_size = 20
 #   Begin the training iterations
 for ep in range(0,num_episodes):

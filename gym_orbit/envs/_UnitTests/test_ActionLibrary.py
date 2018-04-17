@@ -2,7 +2,7 @@ from gym_orbit.envs import ActionLibrary as al
 from gym_orbit.envs import StateLibrary as sl
 from gym_orbit.envs import orbitalMotion as om
 import numpy as np
-import scipy as sci
+from scipy import linalg as sci
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import sys
@@ -55,11 +55,11 @@ def set_moi_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = sci.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
-    desiredElements.e = 1.
+    desiredElements.e = 0.01
     desiredElements.Omega = 1.
     desiredElements.omega = 1.
     desiredElements.i = 1.
@@ -182,7 +182,7 @@ def test_DV():
     true_hist[:,0] = true_state.state_vec
 
     for ind in range(1,n_steps):
-        ref_state, DVref = al.sc_htransfer_propagate(ref_state, mode_options)
+        ref_state = al.sc_htransfer_propagate(ref_state, mode_options)
         ref_hist[:,ind] = ref_state.state_vec
 
         true_state = al.truth_propagate(true_state, mode_options)

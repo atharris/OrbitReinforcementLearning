@@ -4,14 +4,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 import tensorflow as tf
 import DQN_Agent as dqn
+import test_ActionLibrary as al
 
-
-env = gym.make('stationkeep_orbit-v0')
+env = gym.make('mars_orbit_insertion-v0')
 episode_over = False
 state_size = 12
 act_space = 2
 agent = dqn.DQNAgent(state_size, act_space)
-agent.load('dqn_test.h5')
+agent.load('moi_test.h5')
 agent.epsilon = 0.0
 
 estState = np.zeros([6,env.max_length+1])
@@ -24,7 +24,8 @@ ctrlList = []
 obs = env.reset()
 state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)]]), [1, state_size])
 colorDict = {0:'blue',
-             1:'red'}
+             1:'red',
+             2:'green'}
 
 ind=-1
 #   Test observation action
@@ -81,4 +82,13 @@ plt.ylabel('Reward')
 plt.xlabel('Sim Step')
 plt.title('Reward vs. Time')
 plt.grid(True)
+
+
+
+ref_fig = al.orbit_plot(refState)
+ref_fig.legend('ref')
+est_fig = al.orbit_plot(estState)
+est_fig.legend('est')
+true_fig = al.orbit_plot(trueState)
+true_fig.legend('truth')
 plt.show()
