@@ -8,13 +8,13 @@ import os
 from tqdm import tqdm
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, Adam
 from keras.utils import to_categorical
 from gym.envs.registration import register
 
 class QLearnContinuous(object):
 
-	def __init__(self, s_size, a_size, hneurons=[10,10], onehot=False):
+	def __init__(self, s_size, a_size, hneurons=[10,10], onehot=False, lr=0.00025):
 		"""
 		Initialize state and action space lengths.  State size is the size of the
 		neural net's input layer and the action size is the size of the net ouput
@@ -23,6 +23,7 @@ class QLearnContinuous(object):
 		self.s_size = s_size
 		self.a_size = a_size
 		self.replay = []
+		self.learning_rate = lr
 		self.make_model(hneurons)
 		self.ii_mem = 0 # for the _remember function
 		self.onehot = onehot
@@ -43,7 +44,7 @@ class QLearnContinuous(object):
 		self.model.add(Dense(self.a_size, activation='linear'))
 
 		# Reset all the model weights
-		rms = RMSprop()
+		rms = RMSprop(lr=self.learning_rate)
 		self.model.compile(loss='mse', optimizer=rms)
 		self.model.summary()
 		return self.model
@@ -86,10 +87,10 @@ class QLearnContinuous(object):
 			y = np.zeros((1,self.a_size))
 			y[:] = oldQ[:]
 			if done:
-				update = r
+				target = r
 			else:
-				update = r + self.y*np.max(newQ)
-			y[0][a] = update
+				target = r + self.y*np.max(newQ)
+			y[0][a] = target
 			X_train.append(s)
 			y_train.append(y.reshape(self.a_size,))
 
@@ -97,16 +98,17 @@ class QLearnContinuous(object):
 		y_train = np.array(y_train)
 		return X_train, y_train
 
-	def train(self, env, buffer=80, batch_size=40, epochs=1000, steps=100, eps_range=[1.0, 0.02], y=0.9):
+	def train(self, env, buffer=80, batch_size=32, epochs=1000, steps=100, eps_range=[1.0, 0.1], decay_range=0.2, y=0.99):
 		"""
 		Q Learn in the input environment for a set number of epochs and steps.
 		Input parameters include:
 		
 		"""
+		rList = np.zeros(epochs)
 		epsilon = eps_range[0]
 		self.buffer = buffer
 		self.y = y
-		eps_decay = (eps_range[0] - eps_range[1])/eps_range[1]
+		steps_since_update = 0
 		for epoch in tqdm(range(epochs), desc="training"):
 			# Initial state observation on reset 
 			s = env.reset()
@@ -124,20 +126,23 @@ class QLearnContinuous(object):
 				
 				s1 = np.array(s1)
 				self._remember([s, a, r, s1, done])
-
-				# Train the model if there are enough memories
+				steps_since_update += 1
+				# Train the model if there are enough memories and a batch_size worth of updates has been made
+				# if(len(self.replay) == self.buffer and steps_since_update>=batch_size):
 				if(len(self.replay) == self.buffer):
 					minibatch = random.sample(self.replay, batch_size)
 					X_train, y_train = self.trainingData(minibatch)
-					self.model.fit(X_train, y_train, batch_size=1, epochs=1, verbose=0)
+					self.model.fit(X_train, y_train, epochs=1, verbose=0)
+					steps_since_update = 0
 				s = s1
+				rList[epoch] += r
 				# Stop if the environment is done with this epoch
 				if done:
 					break
 			if epsilon > eps_range[1]:
-				epsilon = eps_range[0]/(1 + eps_decay*epoch/epochs)
+				epsilon -= 1/(decay_range*epochs)
 
-		return self
+		return rList
 
 	def simulate(self, env, epochs=10, steps=100, render=True, pause=1):
 		"""
@@ -205,21 +210,28 @@ if __name__ == "__main__":
 	# grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
 	# env = gym.make("FrozenLakeNotSlippery-v0")
-	# env = gym.make('CartPole-v0')
-	env = gym.make('Blackjack-v0')
+	env = gym.make('CartPole-v0')
+	# env = gym.make('Blackjack-v0')
 	a_size = env.action_space.n
 	# s_size = env.observation_space.n
 	# s_size = np.shape(env.observation_space)[0]
-	s_size = 3
+	s_size = 4
 	print("Calling QLearnContinuous...")
-	QL = QLearnContinuous(s_size, a_size, [64], onehot=False)
+	QL = QLearnContinuous(s_size, a_size, [128], onehot=False)
 	print("Qlearner initialized.")
-	# rList = QL.train(env, epochs=3000, steps=7)
-	QL.load('QlearnBlackJack_3000')
+	rList = QL.train(env, epochs=1500, steps=201, buffer=750, batch_size=32, y=0.99)
+	# QL.load('QCartPole_3000')
 	print("done training.")
-	# QL.save('QlearnBlackJack_3000')
+	QL.save('QCartPole_1500')
 	print()
 	env.reset()
+	plt.figure()
+	plt.xlabel('epochs')
+	plt.ylabel('rewards')
+	plt.plot(rList)
+	plt.savefig('QCartPole_1500_rewards.png')
+	plt.show()
+
 	# env.render()
 	# print()
 
@@ -233,15 +245,14 @@ if __name__ == "__main__":
 	# 	print('{}'.format(row))
 
 	# Test the trained QLearner
-	runs = 5000
-	rewards, num_steps = QL.simulate(env, epochs=runs, steps=7, pause=0.0, render=False)
+	runs = 1
+	rewards, num_steps = QL.simulate(env, epochs=runs, steps=201, pause=0.05, render=True)
 	rewards = np.array(rewards)
 	num_steps = np.array(num_steps)
-	print(rewards[0:25])
-	sum_rewards = np.sum(rewards == 1)
-	sum_draws = np.sum(rewards == 0)
-	sum_losses = np.sum(rewards == -1)
-	print("In {} test runs, the learner won at blackjack {} percent of the time.".format(runs, (sum_rewards/runs)*100))
-	print("{} percent of games were draws.".format(100*sum_draws/runs))
-	print("{} percent of the games were losses".format(100*sum_losses/runs))
-	# print("The average number of steps was {}".format(np.mean(num_steps)))
+	# sum_rewards = np.sum(rewards == 1)
+	# sum_draws = np.sum(rewards == 0)
+	# sum_losses = np.sum(rewards == -1)
+	# print("In {} test runs, the learner won at blackjack {} percent of the time.".format(runs, (sum_rewards/runs)*100))
+	# print("{} percent of games were draws.".format(100*sum_draws/runs))
+	# print("{} percent of the games were losses".format(100*sum_losses/runs))
+	print("In {} simulation runs, the average number of steps was {}".format(runs,np.mean(num_steps)))
