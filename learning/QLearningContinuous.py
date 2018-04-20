@@ -11,6 +11,7 @@ from keras.layers import Dense, Activation
 from keras.optimizers import RMSprop, Adam
 from keras.utils import to_categorical
 from gym.envs.registration import register
+from SARSA import SARSA
 
 class QLearnContinuous(object):
 
@@ -209,50 +210,54 @@ if __name__ == "__main__":
 
 	# grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
-	# env = gym.make("FrozenLakeNotSlippery-v0")
-	env = gym.make('CartPole-v0')
+	env = gym.make("FrozenLakeNotSlippery-v0")
+	# env = gym.make('CartPole-v0')
 	# env = gym.make('Blackjack-v0')
 	a_size = env.action_space.n
 	# s_size = env.observation_space.n
 	# s_size = np.shape(env.observation_space)[0]
-	s_size = 4
-	print("Calling QLearnContinuous...")
-	QL = QLearnContinuous(s_size, a_size, [128], onehot=False)
-	print("Qlearner initialized.")
-	rList = QL.train(env, epochs=1500, steps=201, buffer=750, batch_size=32, y=0.99)
+	s_size = 16
+	# print("Calling QLearnContinuous...")
+	print("Calling SARSA...")
+	# QL = QLearnContinuous(s_size, a_size, [128], onehot=False)
+	QL = SARSA(s_size, a_size, [24], onehot=True, replay_buffer=500)
+	# print("Qlearner initialized.")
+	print("SARSA learner initialized")
+	# rList = QL.train(env, epochs=1500, steps=201, buffer=750, batch_size=32, y=0.99)
 	# QL.load('QCartPole_3000')
+	QL.train(env, episodes=1000, steps=100, target_update_steps=250)
 	print("done training.")
-	QL.save('QCartPole_1500')
+	# QL.save('QCartPole_1500')
 	print()
 	env.reset()
 	plt.figure()
 	plt.xlabel('epochs')
 	plt.ylabel('rewards')
 	plt.plot(rList)
-	plt.savefig('QCartPole_1500_rewards.png')
+	# plt.savefig('QCartPole_1500_rewards.png')
 	plt.show()
 
 	# env.render()
 	# print()
 
-	# for i in range(grid_size):
-	# 	row = list()
-	# 	for j in range(grid_size):
-	# 		s = to_categorical(grid_size*i + j, s_size)
-	# 		a = QL.action(s, 0)
-	# 		direct = print_direction(a)
-	# 		row.append(direct)
-	# 	print('{}'.format(row))
+	for i in range(grid_size):
+		row = list()
+		for j in range(grid_size):
+			s = to_categorical(grid_size*i + j, s_size)
+			a = QL.action(s, 0)
+			direct = print_direction(a)
+			row.append(direct)
+		print('{}'.format(row))
 
 	# Test the trained QLearner
-	runs = 1
-	rewards, num_steps = QL.simulate(env, epochs=runs, steps=201, pause=0.05, render=True)
-	rewards = np.array(rewards)
-	num_steps = np.array(num_steps)
+	# runs = 1
+	# rewards, num_steps = QL.simulate(env, epochs=runs, steps=201, pause=0.05, render=True)
+	# rewards = np.array(rewards)
+	# num_steps = np.array(num_steps)
 	# sum_rewards = np.sum(rewards == 1)
 	# sum_draws = np.sum(rewards == 0)
 	# sum_losses = np.sum(rewards == -1)
 	# print("In {} test runs, the learner won at blackjack {} percent of the time.".format(runs, (sum_rewards/runs)*100))
 	# print("{} percent of games were draws.".format(100*sum_draws/runs))
 	# print("{} percent of the games were losses".format(100*sum_losses/runs))
-	print("In {} simulation runs, the average number of steps was {}".format(runs,np.mean(num_steps)))
+	# print("In {} simulation runs, the average number of steps was {}".format(runs,np.mean(num_steps)))
