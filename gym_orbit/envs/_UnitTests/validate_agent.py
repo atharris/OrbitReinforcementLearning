@@ -11,11 +11,8 @@ episode_over = False
 state_size = 18
 act_space = 2
 agent = dqn.DQNAgent(state_size, act_space)
-<<<<<<< Updated upstream
 agent.load('moi_test.h5')
-=======
-agent.load('dqn_zeronoise_science_test.h5')
->>>>>>> Stashed changes
+#agent.load('dqn_zeronoise_science_test.h5')
 agent.epsilon = 0.0
 
 estState = np.zeros([6,env.max_length+1])
