@@ -10,31 +10,28 @@ import os
 env = gym.make('stationkeep_orbit-v0')
 
 #   Test action space
-state_size = 12
+state_size = 18
 act_space = 2
 episode_over = False
 agent = dqn.DQNAgent(state_size, act_space)
 
-
-
-colorDict = {0:'blue',
-             1:'red'}
-
 ind=-1
-num_episodes = 1000
-batch_size = 20
-#   Begin the training iterations
+num_episodes = 2000
+batch_size = 128
+
+reward_hist = np.zeros([num_episodes,])
+#   Begin the training iteration
 for ep in range(0,num_episodes):
 
     obs = env.reset()
-    state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)]]), [1, state_size])
+    state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)],[obs['ref'].state_vec]]), [1, state_size])
     reward_count = 0
     episode_over = False
     #   Start an episode to keep on lernin
     while episode_over == False:
         action = agent.act(state)
         obs, reward, episode_over, _ = env.step(action)
-        next_state = np.reshape(np.hstack([[obs['state'].state_vec], [np.diag(obs['state'].covariance)]]), [1, state_size])
+        next_state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)],[obs['ref'].state_vec]]), [1, state_size])
         agent.remember(state, action, reward, next_state, episode_over)
         reward_count = reward + reward_count
 
@@ -43,8 +40,17 @@ for ep in range(0,num_episodes):
             print("episode:{}/{}, score: {}, e: {:.2}".format(ep, num_episodes, reward_count, agent.epsilon))
     if len(agent.memory) > batch_size:
         agent.replay(batch_size)
+    reward_hist[ind] = reward_count
 
 #   Save the trained model
-agent.save('dqn_test.h5')
+agent.save('dqn_zeronoise_science_test.h5')
+
+plt.figure()
+plt.plot(reward_hist)
+plt.title('Reward vs. Training Episode')
+plt.xlabel('Episode')
+plt.ylabel('Cumulative reward')
+plt.grid(True)
+plt.show()
 
 

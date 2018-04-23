@@ -187,12 +187,18 @@ def observationMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
+<<<<<<< Updated upstream
         if mode_options.insertion_mode:
             ref_state = sc_htransfer_propagate(ref_state, mode_options)
         else:
             ref_state = sc_propagate(ref_state, mode_options)
         #   Generate measurement of true state:
         est_error = mode_options.error_stm.dot(est_error) + mode_options.obs_limit * np.random.randn(6)
+=======
+        ref_state = sc_propagate(ref_state, mode_options)
+        #   Generate measurement of true state:                                                         
+        est_error = mode_options.error_stm.dot(est_error) #+mode_options.obs_limit * np.random.randn(6)
+>>>>>>> Stashed changes
 
 
     est_state.state_vec = true_state.state_vec + est_error
@@ -237,9 +243,15 @@ def controlMode(est_state, ref_state, true_state, mode_options):
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use
 
+<<<<<<< Updated upstream
 def thrustMode(est_state, ref_state, true_state, mode_options):
     '''
         Function to simulate a period of orbit determination.
+=======
+def scienceMode(est_state, ref_state, true_state, mode_options):
+    '''
+        Function to simulate "science operations" that provides a reward proportional to the orbit accuracy, but incurrs drift.
+>>>>>>> Stashed changes
         :param est_state: Estimated state at the beginning of the mode.
         :param ref_state: Internal reference state at the beginning of the mode.
         :param true_state: "Ground truth" state the spacecraft acts on and observes.
@@ -250,6 +262,30 @@ def thrustMode(est_state, ref_state, true_state, mode_options):
         :return true_state: propagated truth state at the end of the mode.
         '''
     tvec = np.arange(0, mode_options.mode_length, mode_options.dt)
+<<<<<<< Updated upstream
+=======
+
+    ref_options = copy.deepcopy(mode_options)
+    ref_options.acc = np.zeros([3, ])
+    normed_error = 0.0
+    reward_multiplier = mode_options.reward_multiplier
+    reward = 0.0
+    for ind in range(0, len(tvec)):
+        #   Compute control acceleration:
+        #   Propagate truth state forward:
+        true_state = truth_propagate(true_state, mode_options)
+        #   Propagate reference state forward:
+        ref_state = sc_propagate(ref_state, ref_options)
+        est_state = est_propagate(est_state, mode_options)
+        true_error = ref_state.state_vec - true_state.state_vec
+        true_error_mag = np.inner(true_error, true_error)
+        #print('True error:', true_error_mag)
+        reward = reward + reward_multiplier * 1. / (true_error_mag + 1.)
+        #print("reward:",reward)
+
+    mode_options.acc = np.zeros([3, ])
+    return est_state, ref_state, true_state, reward
+>>>>>>> Stashed changes
 
     ref_options = copy.deepcopy(mode_options)
     ref_options.acc = np.zeros([3,])

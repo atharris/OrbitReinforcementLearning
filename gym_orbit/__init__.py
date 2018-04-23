@@ -15,3 +15,8 @@ register(
     id='mars_orbit_insertion-v0',
     entry_point='gym_orbit.envs:mars_orbit_insertion',
 )
+
+register(
+    id='stationkeepscience_orbit-v0',
+    entry_point='gym_orbit.envs:station_keep_science',
+)

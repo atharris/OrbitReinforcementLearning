@@ -25,6 +25,16 @@ class rv_state():
         self.state_vec = np.zeros([6,])
         self.burns = 0
 
+class orbel():
+    def __init__(self):
+        self.a = 0.0
+        self.e = 0.0
+        self.i = 0.0
+        self.omega = 0.0
+        self.Omega = 0.0
+        self.nu = 0.0
+        self.covariance = np.zeros([6,6])
+
 class observed_state():
     '''
     Holder for estimated state and covariance. Uses rv_state to hold position, velocity.
