@@ -10,9 +10,9 @@ import numpy as np
 from collections import deque
 from keras.optimizers import Adam
 from keras.models import Sequential,Input,Model,load_model
-from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Dense, Dropout, Flatten, LSTM
 
-class lambdaTraceAgent:
+class DRQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
         self.action_size = action_size
@@ -23,14 +23,13 @@ class lambdaTraceAgent:
         self.epsilon_decay = 0.998
         self.learning_rate = 0.001
         self.model = self._build_model()
-        self.lam = 0.95
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Dense(24, input_dim=self.state_size, activation='relu'))
-        #model.add(Dense(24, input_dim=self.state_size, activation='relu'))
+        model.add(LSTM(24, input_shape=[1,self.state_size], return_sequences=True))
         model.add(Dense(24, activation='relu'))
+        #model.add(Dense(24, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
