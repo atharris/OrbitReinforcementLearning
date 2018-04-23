@@ -9,6 +9,7 @@ Simulate a mars entry scenario using linear state and estimation error growth mo
 import gym
 import numpy as np
 import scipy as sci
+from scipy.linalg import expm
 from gym import spaces
 import StateLibrary as sl
 import ActionLibrary as al
@@ -21,13 +22,14 @@ def set_default_ic():
     ref_state = sl.rv_state()
 
     mode_options = al.mode_options()
-    mode_options.dt = 1.0
+    mode_options.dt = 5.0
     mode_options.mode_length = 5.*60.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = om.J2_MARS
+    mode_options.j2 = 1.*om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.1*np.identity(6)))
+    mode_options.error_stm = expm(mode_options.dt*(-0.1*np.identity(6)))
     mode_options.obs_limit = 0.05
+    mode_options.reward_multiplier = 100.0
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -38,7 +40,7 @@ def set_default_ic():
     true_orbel.f = 0.00
 
     ref_orbel = om.ClassicElements()
-    ref_orbel.a = 7100.0
+    ref_orbel.a = 7105.0
     ref_orbel.e = 0.01
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
@@ -46,7 +48,7 @@ def set_default_ic():
     ref_orbel.f = 0.01
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 7101.0
+    est_orbel.a = 7110.0
     est_orbel.e = 0.01
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
@@ -59,7 +61,7 @@ def set_default_ic():
     return ref_state, est_state, true_state, mode_options
 
 
-class pls_work_env(gym.Env):
+class station_keep_science(gym.Env):
     """
     Define a simple orbit environment.
     The environment defines which actions can be taken at which point and
@@ -68,10 +70,10 @@ class pls_work_env(gym.Env):
 
     def __init__(self):
         self.__version__ = "0.1.0"
-        print("StationKeepingEnv - Version {}".format(self.__version__))
+        print("StationKeepingEnv w/ Science Mode - Version {}".format(self.__version__))
 
         # General variables defining the environment
-        self.max_length = 60 # Specify a maximum number of timesteps
+        self.max_length = 100 # Specify a maximum number of timesteps
 
         #   Set up options, constants for this environment
         self.ref_state, self.est_state, self.true_state, self.mode_options = set_default_ic()
@@ -79,7 +81,7 @@ class pls_work_env(gym.Env):
 
         #   Set up cost constants
         self.state_cost = -1.0 * np.identity(6)
-        self.control_cost = -0.05
+        self.control_cost = -0.5
 
 
         # Observation is the estimated mean, and the associated covariance matrix
@@ -146,10 +148,19 @@ class pls_work_env(gym.Env):
             self.est_state, self.ref_state, self.true_state = al.observationMode(self. est_state, self. ref_state,
                                                                               self.true_state, self.mode_options)
             self.control_use = 0.0
+            self.optional_reward = 0.0
         if action == 1:
             #   Control Step
             self.est_state, self.ref_state, self.true_state, self.control_use = al.controlMode(self.est_state, self.ref_state,
                                                                                  self.true_state, self.mode_options)
+            self.optional_reward = 0.0
+
+        if action == 2:
+            #   Science ops step
+            self.est_state, self.ref_state, self.true_state, self.optional_reward = al.controlMode(self.est_state,
+                                                                                               self.ref_state,
+                                                                                               self.true_state,
+                                                                                               self.mode_options)
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):
@@ -159,7 +170,11 @@ class pls_work_env(gym.Env):
 
         """
         err_state = self.true_state.state_vec - self.ref_state.state_vec
-        return np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost
+        if self.episode_over:
+            return 20. * np.inner(err_state, self.state_cost.dot(
+                err_state)) + self.control_use ** 2.0 * self.control_cost + self.optional_reward
+        else:
+            return np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost + self.optional_reward
 
     def _reset(self):
         """
@@ -181,6 +196,5 @@ class pls_work_env(gym.Env):
     def _get_state(self):
         """Get the observation."""
         ob = {'state':self.est_state,
-            'control':self.control_use,
-              'ref':self.ref_state}
+            'control':self.control_use}
         return ob

@@ -4,20 +4,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 import tensorflow as tf
 import DQN_Agent as dqn
-import test_ActionLibrary as al
 
-env = gym.make('mars_orbit_insertion-v0')
+
+env = gym.make('stationkeepscience_orbit-v0')
 episode_over = False
-state_size = 18
-act_space = 2
-agent = dqn.DQNAgent(state_size, act_space)
-<<<<<<< Updated upstream
-agent.load('moi_test.h5')
-=======
-agent.load('dqn_zeronoise_science_test.h5')
->>>>>>> Stashed changes
-agent.epsilon = 0.0
-
+state_size = 6
 estState = np.zeros([6,env.max_length+1])
 trueState = np.zeros([6,env.max_length+1])
 refState = np.zeros([6,env.max_length+1])
@@ -26,7 +17,7 @@ actHist = []
 ctrlList = []
 
 obs = env.reset()
-state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)],[obs['ref'].state_vec]]), [1, state_size])
+state = np.reshape(obs['state'].state_vec, [1, state_size])
 colorDict = {0:'blue',
              1:'red',
              2:'green'}
@@ -34,10 +25,10 @@ colorDict = {0:'blue',
 ind=-1
 #   Test observation action
 while episode_over == False:
-    action = agent.act(state)
+    action = np.random.randint(0, 3, [1])
     actHist.append(action)
     obs, tmpRew, episode_over, tmpdict = env.step(action)
-    next_state = np.reshape(np.hstack([[obs['state'].state_vec],[np.diag(obs['state'].covariance)],[obs['ref'].state_vec]]), [1, state_size])
+    next_state = np.reshape(obs['state'].state_vec, [1, state_size])
     state = next_state
 
     estState[:,ind] = obs['state'].state_vec
@@ -60,6 +51,7 @@ for plotInd in range(0, 6):
     if plotInd < 6:
         axarr[plotInd].plot(abs(estState[plotInd, :] - trueState[plotInd, :]),label='estimator error')
         axarr[plotInd].plot(abs(refState[plotInd, :] - trueState[plotInd, :]),label='ctrl error')
+        #axarr[plotInd].plot(estState[plotInd, :] - refState[plotInd, :], label='sc error')
         if plotInd == 0:
             axarr[plotInd].set_title('Estimator, Control Errors vs. Time/Mode')
         for ind in range(0,env.max_length):
@@ -84,15 +76,5 @@ plt.plot(rewardList, label='Mode-wise Reward')
 plt.plot(totalReward,label='Summed Reward')
 plt.ylabel('Reward')
 plt.xlabel('Sim Step')
-plt.title('Reward vs. Time')
 plt.grid(True)
-
-
-
-ref_fig = al.orbit_plot(refState)
-ref_fig.legend('ref')
-est_fig = al.orbit_plot(estState)
-est_fig.legend('est')
-true_fig = al.orbit_plot(trueState)
-true_fig.legend('truth')
 plt.show()

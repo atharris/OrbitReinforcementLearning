@@ -2,7 +2,12 @@ from gym_orbit.envs import ActionLibrary as al
 from gym_orbit.envs import StateLibrary as sl
 from gym_orbit.envs import orbitalMotion as om
 import numpy as np
+<<<<<<< Updated upstream
 from scipy import linalg as sci
+=======
+import scipy as sci
+from scipy.linalg import expm
+>>>>>>> Stashed changes
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import sys
@@ -103,12 +108,18 @@ def set_default_ic():
     ref_state = sl.rv_state()
 
     mode_options = al.mode_options()
-    mode_options.dt = 1.0
-    mode_options.mode_length = 10.*60.0
+    mode_options.dt = 5.0
+    mode_options.mode_length = 5.*60.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = 0#om.J2_MARS
+    mode_options.j2 = 1.*om.J2_MARS
     mode_options.rp = om.REQ_MARS
+<<<<<<< Updated upstream
     mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
+=======
+    mode_options.error_stm = expm(mode_options.dt*(-0.1*np.identity(6)))
+    mode_options.obs_limit = 0.05
+    mode_options.reward_multiplier = 100.0
+>>>>>>> Stashed changes
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -119,7 +130,7 @@ def set_default_ic():
     true_orbel.f = 0.00
 
     ref_orbel = om.ClassicElements()
-    ref_orbel.a = 7100.0
+    ref_orbel.a = 7105.0
     ref_orbel.e = 0.01
     ref_orbel.i = 0.0
     ref_orbel.omega = 0.0
@@ -127,7 +138,7 @@ def set_default_ic():
     ref_orbel.f = 0.01
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 7101.0
+    est_orbel.a = 7110.0
     est_orbel.e = 0.01
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
@@ -257,12 +268,48 @@ def test_ctrlMode():
     plt.title('Control use')
     plt.show()
 
+def test_scienceMode():
+    ref_state, est_state, true_state, mode_options = set_default_ic()
 
+
+    n_steps = 10
+
+    ref_hist = np.zeros([6, n_steps])
+    true_hist = np.zeros([6,n_steps])
+    est_hist = np.zeros([6,n_steps])
+    reward_hist = []
+
+    for ind in range(0,n_steps):
+        est_state, ref_state, true_state, reward = al.scienceMode(est_state, ref_state, true_state, mode_options)
+
+        ref_hist[:,ind] = ref_state.state_vec
+        est_hist[:, ind] = est_state.state_vec
+        true_hist[:, ind] = true_state.state_vec
+        reward_hist.append(reward)
+
+
+    states_fig = states_plot(true_hist, ref_hist, est_hist)
+    ref_orb = orbit_plot(ref_hist)
+    ref_state = state_plot(ref_hist)
+    true_orb = orbit_plot(true_hist)
+    true_state = state_plot(true_hist)
+    est_orb = orbit_plot(est_hist)
+    est_state = state_plot(est_hist)
+
+    plt.figure()
+    plt.plot(reward_hist)
+    plt.title('Optional reward generated')
+    plt.show()
 
 
 if __name__ == "__main__":
     #test_propagators()
     #test_obsMode()
+<<<<<<< Updated upstream
     # test_ctrlMode()
     test_DV()
+=======
+    #test_ctrlMode()
+    test_scienceMode()
+>>>>>>> Stashed changes
 
