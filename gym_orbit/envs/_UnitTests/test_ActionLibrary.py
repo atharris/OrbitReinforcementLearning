@@ -2,16 +2,12 @@ from gym_orbit.envs import ActionLibrary as al
 from gym_orbit.envs import StateLibrary as sl
 from gym_orbit.envs import orbitalMotion as om
 import numpy as np
-<<<<<<< Updated upstream
-from scipy import linalg as sci
-=======
 import scipy as sci
 from scipy.linalg import expm
->>>>>>> Stashed changes
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import sys
-sys.path.append('..')
+sys.path.append('../')
 from matplotlib import pyplot as plt
 import orbitalMotion as om
 
@@ -113,13 +109,11 @@ def set_default_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 1.*om.J2_MARS
     mode_options.rp = om.REQ_MARS
-<<<<<<< Updated upstream
-    mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
-=======
+
     mode_options.error_stm = expm(mode_options.dt*(-0.1*np.identity(6)))
     mode_options.obs_limit = 0.05
     mode_options.reward_multiplier = 100.0
->>>>>>> Stashed changes
+
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -305,11 +299,8 @@ def test_scienceMode():
 if __name__ == "__main__":
     #test_propagators()
     #test_obsMode()
-<<<<<<< Updated upstream
     # test_ctrlMode()
     test_DV()
-=======
     #test_ctrlMode()
     test_scienceMode()
->>>>>>> Stashed changes
 
