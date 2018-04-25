@@ -29,7 +29,7 @@ def set_default_ic():
     mode_options.rp = om.REQ_MARS
     mode_options.error_stm = expm(mode_options.dt*(-0.1*np.identity(6)))
     mode_options.obs_limit = 0.05
-    mode_options.reward_multiplier = 100.0
+    mode_options.reward_multiplier = 10.0
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 7100.0
@@ -157,7 +157,7 @@ class station_keep_science(gym.Env):
 
         if action == 2:
             #   Science ops step
-            self.est_state, self.ref_state, self.true_state, self.optional_reward = al.controlMode(self.est_state,
+            self.est_state, self.ref_state, self.true_state, self.optional_reward = al.scienceMode(self.est_state,
                                                                                                self.ref_state,
                                                                                                self.true_state,
                                                                                                self.mode_options)
@@ -196,5 +196,7 @@ class station_keep_science(gym.Env):
     def _get_state(self):
         """Get the observation."""
         ob = {'state':self.est_state,
-            'control':self.control_use}
+            'control':self.control_use,
+              'ref':self.ref_state}
+
         return ob

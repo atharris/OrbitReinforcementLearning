@@ -7,17 +7,17 @@ import matplotlib.pyplot as plt
 import DQN_Agent as dqn
 import os
 
-env = gym.make('stationkeep_orbit-v0')
+env = gym.make('stationkeepscience_orbit-v0')
 
 #   Test action space
 state_size = 18
-act_space = 2
+act_space = 3
 episode_over = False
 agent = dqn.DQNAgent(state_size, act_space)
 
 ind=-1
-num_episodes = 2000
-batch_size = 128
+num_episodes = 5000
+batch_size = 32
 
 reward_hist = np.zeros([num_episodes,])
 #   Begin the training iteration
@@ -41,10 +41,10 @@ for ep in range(0,num_episodes):
     if len(agent.memory) > batch_size:
         agent.replay(batch_size)
     reward_hist[ind] = reward_count
-    ind=ind+1
+    ind = ind+1
 
 #   Save the trained model
-agent.save('dqn_zeronoise_test.h5')
+agent.save('dqn_zeronoise_science_test.h5')
 
 plt.figure()
 plt.plot(reward_hist)

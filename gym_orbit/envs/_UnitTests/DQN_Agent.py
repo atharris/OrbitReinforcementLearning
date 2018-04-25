@@ -19,8 +19,10 @@ class DQNAgent:
         self.memory = deque(maxlen=2000)
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.1
         self.epsilon_decay = 0.998
+        self.num_eps = 0.0
+        self.epsilon_const = 500 #  Number of training runs w/ constant random actions
         self.learning_rate = 0.001
         self.model = self._build_model()
 
@@ -54,8 +56,11 @@ class DQNAgent:
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        if self.num_eps > self.epsilon_const:
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
+
+        self.num_eps = self.num_eps + 1
 
     def save(self, filename):
         self.model.save(filename)
