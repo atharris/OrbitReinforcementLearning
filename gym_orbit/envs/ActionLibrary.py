@@ -37,7 +37,6 @@ class mode_options:
         self.obs_limit = 0. #  Converged estimator accuracy in meters
         self.burn_number = 1 # Allow one DV burn by default
         self.goal_orbel = om.ClassicElements()
-        self.insertion_mode = False
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu
@@ -147,8 +146,9 @@ def resultOrbit(input_state, desired_orbit):
     '''
     Mode in which the spacecraft is rendered non-functional and state error increases.
     :param input_state: state of the s/c when thrust is commanded
-    :param DV: scalar thrust commanded (positive DV is against the s/c velocity)
-    :return: oe : Orbital Elements of the resulting orbit (instantiation of ClassicElements class)
+    :param desired_orbit: Orbital elements of the desired orbit
+    :return: input_state : Unpdated s/c state
+    :return: DV: Norm of the thrust
 
     '''
     assert np.shape(input_state.state_vec)[0] == 6
@@ -167,6 +167,26 @@ def resultOrbit(input_state, desired_orbit):
     input_state.state_vec += thrust.state_vec
 
     return input_state, DV
+
+def resultReference(input_ref, input_est, DV):
+    '''
+    Mode in which the spacecraft is rendered non-functional and state error increases.
+    :param input_ref: ref state when thrust is commanded
+    :param input_est: est s/c state when thrust is commanded
+    :param DV: scalar thrust commanded (positive DV is against the s/c velocity)
+    :return: oe : Orbital Elements of the resulting orbit (instantiation of ClassicElements class)
+
+    '''
+    assert np.shape(input_ref.state_vec)[0] == 6
+    assert np.shape(input_est.state_vec)[0] == 6
+
+
+    thrust = StateLib.rv_state()
+    thrust.state_vec[3:6] = DV*input_ref.state_vec[3:6]/np.linalg.norm(input_ref.state_vec[3:6])
+
+    input_ref.state_vec += thrust.state_vec
+
+    return input_ref
 
 def observationMode(est_state, ref_state, true_state, mode_options):
     '''
@@ -187,11 +207,9 @@ def observationMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-
-        if mode_options.insertion_mode:
-            ref_state = sc_htransfer_propagate(ref_state, mode_options)
-        else:
-            ref_state = sc_propagate(ref_state, mode_options)
+        ref_state = sc_propagate(ref_state, mode_options)
+        #   Generate measurement of true state:
+        est_error = mode_options.error_stm.dot(est_error) #+ mode_options.obs_limit * np.random.randn(6)
 
         #   Generate measurement of true state:                                                         
         est_error = mode_options.error_stm.dot(est_error) #+mode_options.obs_limit * np.random.randn(6)
@@ -228,10 +246,7 @@ def controlMode(est_state, ref_state, true_state, mode_options):
         #   Propagate truth state forward:
         true_state = truth_propagate(true_state, mode_options)
         #   Propagate reference state forward:
-        if mode_options.insertion_mode:
-            ref_state = sc_htransfer_propagate(ref_state, ref_options)
-        else:
-            ref_state = sc_propagate(ref_state, ref_options)
+        ref_state = sc_propagate(ref_state, ref_options)
         est_state = est_propagate(est_state, mode_options)
 
 
@@ -258,6 +273,7 @@ def thrustMode(est_state, ref_state, true_state, mode_options):
     #   Compute control acceleration:
     true_state, DVtruth = resultOrbit(est_state, mode_options.goal_orbel)
     est_state, DVest = resultOrbit(est_state, mode_options.goal_orbel)
+    ref_state = resultReference(ref_state, est_state, DVest)
     control_use = DVest
 
     for ind in range(0, len(tvec)):
@@ -265,7 +281,7 @@ def thrustMode(est_state, ref_state, true_state, mode_options):
         true_state = truth_propagate(true_state, mode_options)
         est_state = est_propagate(est_state, mode_options)
         #   Propagate reference state forward with transfer dynamics
-        ref_state = sc_htransfer_propagate(ref_state, ref_options)
+        ref_state = sc_propagate(ref_state, ref_options)
 
     mode_options.acc = np.zeros([3,])
     return est_state, ref_state, true_state, control_use

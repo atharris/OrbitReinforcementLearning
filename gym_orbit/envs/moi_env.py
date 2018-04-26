@@ -22,7 +22,7 @@ def set_moi_ic():
 
     mode_options = al.mode_options()
     mode_options.dt = 10.
-    mode_options.mode_length = 10.*60.0
+    mode_options.mode_length = 10.*30.0
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
@@ -32,12 +32,11 @@ def set_moi_ic():
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
     desiredElements.e = 0.01
-    desiredElements.Omega = 1.
-    desiredElements.omega = 1.
-    desiredElements.i = 1.
-    desiredElements.f = 1.
+    desiredElements.Omega = 0.
+    desiredElements.omega = 0.
+    desiredElements.i = 0.
+    desiredElements.f = 0.
     mode_options.goal_orbel = desiredElements
-    mode_options.insertion_mode = True
 
     true_orbel = om.ClassicElements()
     true_orbel.a = 100000.0
@@ -82,7 +81,7 @@ class mars_orbit_insertion(gym.Env):
         print("MOI - Version {}".format(self.__version__))
 
         # General variables defining the environment
-        self.max_length = 60 # Specify a maximum number of timesteps
+        self.max_length = 30 # Specify a maximum number of timesteps
 
         #   Set up options, constants for this environment
         self.ref_state, self.est_state, self.true_state, self.mode_options = set_moi_ic()
@@ -90,6 +89,7 @@ class mars_orbit_insertion(gym.Env):
 
         #   Set up cost constants
         self.state_cost = -1.0 * np.identity(6)
+        self.orb_cost = -1.0 * np.diag([1.,1000.,1000.])
         self.control_cost = -0.05
 
 
@@ -165,8 +165,10 @@ class mars_orbit_insertion(gym.Env):
 
         if action ==2:
             #   DV Thrust Step
+            print '***********'
             self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
                                                                                  self.true_state, self.mode_options)
+            # self.episode_over = True
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):
@@ -176,7 +178,21 @@ class mars_orbit_insertion(gym.Env):
 
         """
         err_state = self.true_state.state_vec - self.ref_state.state_vec
-        return np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost
+        err_orbit = np.zeros(3)
+
+        if self.episode_over:
+            finalOE = om.rv2elem_parab(om.MU_MARS, self.ref_state.state_vec[:3], self.ref_state.state_vec[3:])
+            print 'self.ref_state.state_vec', self.ref_state.state_vec
+            err_orbit[0] = finalOE.a - self.mode_options.goal_orbel.a
+            err_orbit[1] = finalOE.e - self.mode_options.goal_orbel.e
+            err_orbit[2] = finalOE.omega - self.mode_options.goal_orbel.omega
+
+            print 'State error costs' , np.inner(err_state, self.state_cost.dot(err_state))
+            print 'Control costs' , self.control_use**2.0 * self.control_cost
+            print 'Final orbit costs' , np.dot(err_orbit, self.orb_cost.dot(err_orbit))**5.
+            print 'error orbit' , err_orbit
+
+        return np.dot(err_orbit, self.orb_cost.dot(err_orbit)) # np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost +
 
     def _reset(self):
         """
@@ -197,6 +213,12 @@ class mars_orbit_insertion(gym.Env):
 
     def _get_state(self):
         """Get the observation."""
-        ob = {'state':self.est_state,
-            'control':self.control_use}
+        # est_OE = om.rv2elem(om.MU_MARS, self.est_state.state_vec[:3], self.est_state.state_vec[3:])
+        # ref_OE = om.rv2elem(om.MU_MARS, self.ref_state.state_vec[:3], self.ref_state.state_vec[3:])
+
+
+        ob = {'state': self.est_state,
+            'control':self.control_use,
+              'ref': self.ref_state,
+              'goal': self.mode_options.goal_orbel}
         return ob
