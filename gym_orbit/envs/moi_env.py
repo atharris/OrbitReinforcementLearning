@@ -165,9 +165,12 @@ class mars_orbit_insertion(gym.Env):
 
         if action ==2:
             #   DV Thrust Step
-            print '***********'
-            self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
-                                                                                 self.true_state, self.mode_options)
+            if self.mode_options.thrusted == False:
+                print '***********'
+                self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
+                                                                                     self.true_state, self.mode_options)
+                self.mode_options.thrusted = True
+
             # self.episode_over = True
         remaining_steps = self.max_length - self.curr_step
 
@@ -189,7 +192,7 @@ class mars_orbit_insertion(gym.Env):
 
             print 'State error costs' , np.inner(err_state, self.state_cost.dot(err_state))
             print 'Control costs' , self.control_use**2.0 * self.control_cost
-            print 'Final orbit costs' , np.dot(err_orbit, self.orb_cost.dot(err_orbit))**5.
+            print 'Final orbit costs' , np.dot(err_orbit, self.orb_cost.dot(err_orbit))
             print 'error orbit' , err_orbit
 
         return np.dot(err_orbit, self.orb_cost.dot(err_orbit)) # np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost +

@@ -24,6 +24,7 @@ colorDict = {0:'blue',
 ind=-1
 num_episodes = 1000
 batch_size = 20
+depth = 60
 #   Begin the training iterations
 for ep in range(0,num_episodes):
 
@@ -45,7 +46,7 @@ for ep in range(0,num_episodes):
             print("episode:{}/{}, score: {}, e: {:.2}".format(ep, num_episodes, reward_count, agent.epsilon))
             rewardplot.append(reward_count)
     if len(agent.memory) > batch_size:
-        agent.replay(batch_size)
+        agent.eligibility(batch_size, depth)
 
 #   Save the trained model
 agent.save('moi_test.h5')

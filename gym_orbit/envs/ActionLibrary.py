@@ -37,6 +37,7 @@ class mode_options:
         self.obs_limit = 0. #  Converged estimator accuracy in meters
         self.burn_number = 1 # Allow one DV burn by default
         self.goal_orbel = om.ClassicElements()
+        self.thrusted = False
 
 def propModel(t,y,odeOptions):
     mu = odeOptions.mu

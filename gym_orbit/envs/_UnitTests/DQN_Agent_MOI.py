@@ -19,8 +19,10 @@ class DQNAgent:
         self.memory = deque(maxlen=2000)
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.9995
+        self.epsilon_min = 0.1
+        self.epsilon_decay = 0.995
+        self.num_eps = 0.0
+        self.epsilon_const = 500 #  Number of training runs w/ constant random actions
         self.learning_rate = 0.001
         self.model = self._build_model()
 
@@ -49,8 +51,9 @@ class DQNAgent:
         for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
-              target = reward + self.gamma * \
-                       np.amax(self.model.predict(next_state)[0])
+                for i in range(len(reward)):
+                    target += self.gamma**i*reward[i]
+                target += self.gamma**(i+1) * np.amax(self.model.predict(next_state)[0])
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
@@ -62,3 +65,37 @@ class DQNAgent:
 
     def load(self, filename):
         self.model = load_model(filename)
+
+    def eligibility(self, batch_size, trace_depth):
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
+            j=0
+            for state_test, action_test, reward_test, next_state_test, done_test in self.memory:
+                if state_test.all() == state.all() and action_test == action and reward_test == reward and next_state_test.all()==next_state.all() and done_test == done:
+                    ind = j
+                    break
+                else:
+                    j+=1
+            target = reward
+            traceBatch= []
+            for k in range(trace_depth):
+                if ind + k < len(self.memory):
+                    traceBatch.append(self.memory[ind + k])
+                else:
+                    break
+            i=0
+            if not done:
+                for state_t, action_t, reward_t, next_state_t, done_t in traceBatch:
+                    if done_t:
+                        break
+                    target += self.gamma ** i * reward_t
+                    i+=1
+                target += self.gamma ** (i + 1) * np.amax(self.model.predict(next_state)[0])
+            target_f = self.model.predict(state)
+            target_f[0][action] = target
+            self.model.fit(state, target_f, epochs=1, verbose=0)
+        if self.num_eps > self.epsilon_const:
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
+
+        self.num_eps = self.num_eps + 1
