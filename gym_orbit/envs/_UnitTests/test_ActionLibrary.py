@@ -187,7 +187,7 @@ def test_DV():
     true_hist[:,0] = true_state.state_vec
 
     for ind in range(1,n_steps):
-        ref_state = al.sc_htransfer_propagate(ref_state, mode_options)
+        ref_state = al.sc_propagate(ref_state, mode_options)
         ref_hist[:,ind] = ref_state.state_vec
 
         true_state = al.truth_propagate(true_state, mode_options)
@@ -202,6 +202,9 @@ def test_DV():
 
             est_state, DVest = al.resultOrbit(est_state, mode_options.goal_orbel)
             est_hist[:, ind] = est_state.state_vec
+
+            ref_state = al.resultReference(ref_state, est_state, DVest)
+            ref_hist[:, ind] = ref_state.state_vec
 
     ref_fig = orbit_plot(ref_hist)
     est_fig = orbit_plot(est_hist)
