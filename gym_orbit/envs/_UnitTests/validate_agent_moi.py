@@ -1,11 +1,27 @@
 import gym
 import gym_orbit
 import numpy as np
+import sys
+sys.path.append('../')
 from matplotlib import pyplot as plt
 import tensorflow as tf
 import DQN_Agent as dqn
 import test_ActionLibrary as al
+import orbitalMotion as om
 
+# moi_test_2.h5
+# moi_test_err.h5
+# moi_test_err2.h5
+# moi_test_infThrust.h5
+# moi_test_thrustEnd.h5
+# moi_test_thrustest.h5
+# moi_test_yshtbn_2.h5
+# moi_test_yshtbn.h5
+# moi_test.h5
+
+# moi_test_err.h5
+# moi_test_thrustEnd.h5
+# moi_test.h5
 env = gym.make('mars_orbit_insertion-v0')
 episode_over = False
 state_size = 21
@@ -85,7 +101,9 @@ plt.xlabel('Sim Step')
 plt.title('Reward vs. Time')
 plt.grid(True)
 
-
+print 'Final OEs'
+print om.rv2elem(om.MU_MARS, refState[:3,-1], refState[3:,-1]).a, om.rv2elem(om.MU_MARS, refState[:3,-1], refState[3:,-1]).e, om.rv2elem(om.MU_MARS, refState[:3,-1], refState[3:,-1]).omega
+print 'Expected OEs'
 
 ref_fig = al.orbit_plot(refState[:,1:])
 ref_fig.suptitle('reference')

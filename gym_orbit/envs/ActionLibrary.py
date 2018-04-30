@@ -272,7 +272,7 @@ def thrustMode(est_state, ref_state, true_state, mode_options):
     ref_options.acc = np.zeros([3,])
 
     #   Compute control acceleration:
-    true_state, DVtruth = resultOrbit(est_state, mode_options.goal_orbel)
+    true_state, DVtruth = resultOrbit(true_state, mode_options.goal_orbel)
     est_state, DVest = resultOrbit(est_state, mode_options.goal_orbel)
     ref_state = resultReference(ref_state, est_state, DVest)
     control_use = DVest
