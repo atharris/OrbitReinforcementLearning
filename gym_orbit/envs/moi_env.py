@@ -225,12 +225,14 @@ class mars_orbit_insertion(gym.Env):
 
     def _get_state(self):
         """Get the observation."""
-        # est_OE = om.rv2elem(om.MU_MARS, self.est_state.state_vec[:3], self.est_state.state_vec[3:])
-        # ref_OE = om.rv2elem(om.MU_MARS, self.ref_state.state_vec[:3], self.ref_state.state_vec[3:])
+        true_OE = om.rv2elem(om.MU_MARS, self.true_state.state_vec[:3], self.true_state.state_vec[3:])
+        state_err = self.est_state - self.true_state
+
+        OE_err = np.array([(self.mode_options.goal_orbel.a - true_OE.a)/true_OE.a, (self.mode_options.goal_orbel.e - true_OE.e)/true_OE.e, (self.mode_options.goal_orbel.omega - true_OE.omega)/true_OE.omega])
 
 
-        ob = {'state': self.est_state,
-            'control':self.control_use,
-              'ref': self.ref_state,
-              'goal': self.mode_options.goal_orbel}
+
+        ob = {'state': np.linalg.norm(state_err),
+              'covar': np.linalg.norm(np.diag(self.est_state.covariance)),
+              'goal': np.linalg.norm(OE_err)}
         return ob
