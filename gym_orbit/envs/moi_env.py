@@ -22,18 +22,18 @@ def set_moi_ic():
 
     mode_options = al.mode_options()
     mode_options.dt = 10.
-    mode_options.mode_length = 10.*30.0
+    mode_options.mode_length = 10.*50.0
     mode_options.mu = om.MU_MARS
-    mode_options.j2 = 0#om.J2_MARS
+    mode_options.j2 = 0. #om.J2_MARS
     mode_options.rp = om.REQ_MARS
     mode_options.burn_number = 1
     mode_options.error_stm = sci.linalg.expm(mode_options.dt*(-0.01*np.identity(6)))
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
-    desiredElements.e = 0.01
+    desiredElements.e = 0.001
     desiredElements.Omega = 0.
-    desiredElements.omega = 0.
+    desiredElements.omega = 3.14159 #pi
     desiredElements.i = 0.
     desiredElements.f = 0.
     mode_options.goal_orbel = desiredElements
@@ -55,8 +55,8 @@ def set_moi_ic():
     ref_orbel.f = -0.5
 
     est_orbel = om.ClassicElements()
-    est_orbel.a = 100000.0
-    est_orbel.e = 0.8
+    est_orbel.a = 100010.0
+    est_orbel.e = 0.801
     est_orbel.i = 0.0
     est_orbel.omega = 0.0
     est_orbel.Omega = 0.0
@@ -88,8 +88,8 @@ class mars_orbit_insertion(gym.Env):
         self.control_use = 0.0
 
         #   Set up cost constants
-        self.state_cost = -1.0 * np.identity(6)
-        self.orb_cost = -1.0 * np.diag([1.,1000.,1000.])
+        self.state_cost = -1.0 * np.diag([1.,1.,1.,1E5,1E5,1E5])
+        self.orb_cost = -1.0 * np.diag([1.,1E5,1E4])
         self.control_cost = -0.05
 
 
@@ -166,12 +166,15 @@ class mars_orbit_insertion(gym.Env):
         if action ==2:
             #   DV Thrust Step
             if self.mode_options.thrusted == False:
-                print '***********'
                 self.est_state, self.ref_state, self.true_state, self.control_use = al.thrustMode(self.est_state, self.ref_state,
                                                                                      self.true_state, self.mode_options)
                 self.mode_options.thrusted = True
+                print 'DV = ', self.control_use
 
-            # self.episode_over = True
+            else:
+                self.est_state, self.ref_state, self.true_state = al.observationMode(self.est_state, self.ref_state,
+                                                                                     self.true_state, self.mode_options)
+                self.control_use = 0.0
         remaining_steps = self.max_length - self.curr_step
 
     def _get_reward(self):
@@ -183,19 +186,25 @@ class mars_orbit_insertion(gym.Env):
         err_state = self.true_state.state_vec - self.ref_state.state_vec
         err_orbit = np.zeros(3)
 
-        if self.episode_over:
-            finalOE = om.rv2elem_parab(om.MU_MARS, self.ref_state.state_vec[:3], self.ref_state.state_vec[3:])
-            print 'self.ref_state.state_vec', self.ref_state.state_vec
-            err_orbit[0] = finalOE.a - self.mode_options.goal_orbel.a
-            err_orbit[1] = finalOE.e - self.mode_options.goal_orbel.e
-            err_orbit[2] = finalOE.omega - self.mode_options.goal_orbel.omega
+        elems = om.rv2elem_parab(om.MU_MARS, self.ref_state.state_vec[:3], self.ref_state.state_vec[3:])
 
-            print 'State error costs' , np.inner(err_state, self.state_cost.dot(err_state))
+        if self.episode_over:
+            print 'self.ref_state.state_vec', self.ref_state.state_vec
+            err_orbit[0] = elems.a - self.mode_options.goal_orbel.a
+            err_orbit[1] = elems.e - self.mode_options.goal_orbel.e
+            err_orbit[2] = elems.omega - self.mode_options.goal_orbel.omega
+            err_state = np.sqrt(20)*err_state
+
+            print 'State error costs' , np.inner(err_state, self.state_cost.dot(err_state))/10
             print 'Control costs' , self.control_use**2.0 * self.control_cost
-            print 'Final orbit costs' , np.dot(err_orbit, self.orb_cost.dot(err_orbit))
+            print 'Final orbit costs' , (np.dot(err_orbit, self.orb_cost.dot(err_orbit)))/1E8
             print 'error orbit' , err_orbit
 
-        return np.dot(err_orbit, self.orb_cost.dot(err_orbit)) # np.inner(err_state, self.state_cost.dot(err_state)) + self.control_use**2.0 * self.control_cost +
+        youShouldHaveThrustedByNow = 0
+        if elems.f > 0. and elems.a - 100000< 1E-1:
+            youShouldHaveThrustedByNow += -5
+
+        return (np.dot(err_orbit, self.orb_cost.dot(err_orbit)))/1E8 + np.inner(err_state, self.state_cost.dot(err_state))/10 + self.control_use**2.0 * self.control_cost + youShouldHaveThrustedByNow
 
     def _reset(self):
         """

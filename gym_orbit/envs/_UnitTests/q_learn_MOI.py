@@ -14,6 +14,7 @@ state_size = 21
 act_space = 3
 episode_over = False
 agent = dqn.DQNAgent(state_size, act_space)
+agent.load('moi_test_yshtbn.h5')
 
 rewardplot = []
 
@@ -22,7 +23,7 @@ colorDict = {0:'blue',
              2:'green'}
 
 ind=-1
-num_episodes = 1000
+num_episodes = 10000
 batch_size = 20
 depth = 60
 #   Begin the training iterations
@@ -49,7 +50,7 @@ for ep in range(0,num_episodes):
         agent.eligibility(batch_size, depth)
 
 #   Save the trained model
-agent.save('moi_test.h5')
+agent.save('moi_test_states.h5')
 
 plt.plot(rewardplot)
 plt.show()

@@ -11,6 +11,7 @@ sys.path.append('../')
 from matplotlib import pyplot as plt
 import orbitalMotion as om
 
+
 def orbit_plot(rv_state):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -56,15 +57,15 @@ def set_moi_ic():
     mode_options.mu = om.MU_MARS
     mode_options.j2 = 0#om.J2_MARS
     mode_options.rp = om.REQ_MARS
-    mode_options.error_stm = sci.expm(mode_options.dt*(-0.01*np.identity(6)))
+    mode_options.error_stm = expm(mode_options.dt*(-0.01*np.identity(6)))
 
     desiredElements = om.ClassicElements()
     desiredElements.a = 1000
     desiredElements.e = 0.01
-    desiredElements.Omega = 1.
-    desiredElements.omega = 1.
-    desiredElements.i = 1.
-    desiredElements.f = 1.
+    desiredElements.Omega = 0.
+    desiredElements.omega = 3.14159
+    desiredElements.i = 0.
+    desiredElements.f = 0.
     mode_options.goal_orbel = desiredElements
     mode_options.burn_number = 1
     mode_options.insertion_mode = True
@@ -206,6 +207,8 @@ def test_DV():
             ref_state = al.resultReference(ref_state, est_state, DVest)
             ref_hist[:, ind] = ref_state.state_vec
 
+            print 'DV order' , DVest
+
     ref_fig = orbit_plot(ref_hist)
     est_fig = orbit_plot(est_hist)
     true_fig = orbit_plot(true_hist)
@@ -305,5 +308,5 @@ if __name__ == "__main__":
     # test_ctrlMode()
     test_DV()
     #test_ctrlMode()
-    test_scienceMode()
+    # test_scienceMode()
 
