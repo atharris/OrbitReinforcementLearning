@@ -58,6 +58,7 @@ class SARSA(object):
 		self.target_model.add(Dense(self.a_size, activation='linear'))
 		rms = RMSprop(lr=self.learning_rate)
 		self.target_model.compile(loss='mse', optimizer=rms)
+		self.model.summary()
 		return self.model
 
 	def _copy_model_to_target(self):
@@ -92,15 +93,17 @@ class SARSA(object):
 		y_train = []
 		for memory in batch:
 			s, a, r, s1, a1, done = memory
+			# print("s={}, a={}, r={}, s1={}, a1={}".format(s, a, r, s1, a1))
 			oldQ = self.model.predict(s.reshape(1,self.s_size))
 			newQ = self.target_model.predict(s1.reshape(1,self.s_size))
+			# print("oldQ={}, newQ={}".format(oldQ, newQ))
 			y = np.zeros((1,self.a_size))
 			y[:] = oldQ[:]
 			if done:
 				target = r
 			else:
 				# SARSA model target update step
-				target = r + self.y*newQ[a1]
+				target = r + self.y*newQ[0][a1]
 			y[0][a] = target
 			X_train.append(s)
 			y_train.append(y.reshape(self.a_size,))
@@ -109,7 +112,7 @@ class SARSA(object):
 		y_train = np.array(y_train)
 		return X_train, y_train
 
-	def simulate(self, env, episodes=10, steps=100, render=True, pause=1, epsilon=0, remember=False):
+	def simulate(self, env, episodes=10, steps=100, render=True, pause=0, epsilon=0, remember=False):
 		"""
 		Simulate an agent in the environment using the current Q model.
 		"""
@@ -148,14 +151,14 @@ class SARSA(object):
 
 		return r_hist, step_total, s_hist, a_hist
 
-	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.05, 
-			  lin_anneal_frac=.2, minibatch=32, y=0.9, target_update_steps=5000):
+	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.1, 
+			  lin_anneal_frac=.3, minibatch_size=32, y=0.9, target_update_steps=5000):
 		"""
 		Description of training
 		"""
 
 		# Initialize a replay memory of random_eps stored in memory
-		self.simulate(env, episodes=np.floor(random_eps_frac*episodes), render=render, 
+		self.simulate(env, episodes=int(np.floor(random_eps_frac*episodes)), render=render, 
 					  steps=steps, epsilon=1, remember=True)
 
 		# Copy initial target model to have the same weights as the model
@@ -173,7 +176,7 @@ class SARSA(object):
 		# Initialize a list of rewards
 		rList = np.zeros(episodes)
 
-		for episode in tqdm(range(episodes), desc="training"):
+		for episode in tqdm(range(episodes), desc="training, r={}".format(rList[episode])):
 			# Reset the environment
 			s = env.reset()
 			a = self.action(s, epsilon)
@@ -192,8 +195,7 @@ class SARSA(object):
 				self._remember([s, a, r, s1, a1, done])
 
 				# Train on a minibatch sampled randomly from the replay memory
-				minibatch = random.sample(self.replay, batch_size)
-				X_train, y_train = self.trainingData(minibatch)
+				X_train, y_train = self._minibatch(random.sample(self.replay, minibatch_size))
 				self.model.fit(X_train, y_train, epochs=1, verbose=0)
 
 				# Every target_update_steps, set target_model equal to model

@@ -210,48 +210,50 @@ if __name__ == "__main__":
 
 	# grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
-	env = gym.make("FrozenLakeNotSlippery-v0")
-	# env = gym.make('CartPole-v0')
+	# env = gym.make("FrozenLakeNotSlippery-v0")
+	env = gym.make('CartPole-v0')
 	# env = gym.make('Blackjack-v0')
 	a_size = env.action_space.n
 	# s_size = env.observation_space.n
 	# s_size = np.shape(env.observation_space)[0]
-	s_size = 16
+	# s_size = 16
+	s_size = 4
 	# print("Calling QLearnContinuous...")
 	print("Calling SARSA...")
 	# QL = QLearnContinuous(s_size, a_size, [128], onehot=False)
-	QL = SARSA(s_size, a_size, [24], onehot=True, replay_buffer=500)
+	QL = SARSA(s_size, a_size, hneurons=[64], replay_buffer=10000)
 	# print("Qlearner initialized.")
 	print("SARSA learner initialized")
 	# rList = QL.train(env, epochs=1500, steps=201, buffer=750, batch_size=32, y=0.99)
-	# QL.load('QCartPole_3000')
-	QL.train(env, episodes=1000, steps=100, target_update_steps=250)
+
+	# QL.load('QCartPole_3000_166')
+	rList = QL.train(env, episodes=3000, steps=201, target_update_steps=1000, y=0.99)
 	print("done training.")
-	# QL.save('QCartPole_1500')
+	QL.save('Qnewest')
 	print()
 	env.reset()
 	plt.figure()
 	plt.xlabel('epochs')
 	plt.ylabel('rewards')
 	plt.plot(rList)
-	# plt.savefig('QCartPole_1500_rewards.png')
+	plt.savefig('Qnewest.png')
 	plt.show()
 
 	# env.render()
 	# print()
 
-	for i in range(grid_size):
-		row = list()
-		for j in range(grid_size):
-			s = to_categorical(grid_size*i + j, s_size)
-			a = QL.action(s, 0)
-			direct = print_direction(a)
-			row.append(direct)
-		print('{}'.format(row))
+	# for i in range(grid_size):
+	# 	row = list()
+	# 	for j in range(grid_size):
+	# 		s = to_categorical(grid_size*i + j, s_size)
+	# 		a = QL.action(s, 0)
+	# 		direct = print_direction(a)
+	# 		row.append(direct)
+	# 	print('{}'.format(row))
 
 	# Test the trained QLearner
-	# runs = 1
-	# rewards, num_steps = QL.simulate(env, epochs=runs, steps=201, pause=0.05, render=True)
+	runs = 1
+	rewards, num_steps = QL.simulate(env, epochs=runs, steps=201, pause=0.05, render=True)
 	# rewards = np.array(rewards)
 	# num_steps = np.array(num_steps)
 	# sum_rewards = np.sum(rewards == 1)
