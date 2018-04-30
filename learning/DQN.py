@@ -12,7 +12,7 @@ from keras.optimizers import RMSprop, Adam
 from keras.utils import to_categorical
 from gym.envs.registration import register
 
-class SARSA(object):
+class DQN(object):
 
 	def __init__(self, s_size, a_size, hneurons=[10,10], onehot=False, lr=0.00025, replay_buffer=10000):
 		"""
@@ -90,8 +90,7 @@ class SARSA(object):
 		X_train = []
 		y_train = []
 		for memory in batch:
-			s, a, r, s1, a1, done = memory
-			# print("s={}, a={}, r={}, s1={}, a1={}".format(s, a, r, s1, a1))
+			s, a, r, s1, done = memory
 			oldQ = self.model.predict(s.reshape(1,self.s_size))
 			newQ = self.target_model.predict(s1.reshape(1,self.s_size))
 			# newQ = self.model.predict(s1.reshape(1,self.s_size))
@@ -101,8 +100,8 @@ class SARSA(object):
 			if done:
 				target = r
 			else:
-				# SARSA model target update step
-				target = r + self.y*newQ[0][a1]
+				# DQN model target update step
+				target = r + self.y*np.max(newQ)
 			y[0][a] = target
 			X_train.append(s)
 			y_train.append(y.reshape(self.a_size,))
@@ -138,7 +137,7 @@ class SARSA(object):
 				s1 = np.array(s1)
 				a1 = self.action(s, epsilon)
 				if remember:
-					self._remember([s, a, r, s1, a1, done])
+					self._remember([s, a, r, s1, done])
 				s = s1
 				a = a1
 				time.sleep(pause)
@@ -151,7 +150,7 @@ class SARSA(object):
 		return r_hist, step_total, s_hist, a_hist
 
 	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.1, 
-			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000):
+			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=500):
 		"""
 		Description of training
 		"""
@@ -195,7 +194,7 @@ class SARSA(object):
 				a1 = self.action(s1, epsilon)
 
 				# Store the state, action, reward, state, action (SARSA)
-				self._remember([s, a, r, s1, a1, done])
+				self._remember([s, a, r, s1, done])
 
 				# Train on a minibatch sampled randomly from the replay memory
 				X_train, y_train = self._minibatch(random.sample(self.replay, minibatch_size))
@@ -203,7 +202,7 @@ class SARSA(object):
 
 				# Every target_update_steps, set target_model equal to model
 				total_steps += 1
-				if not (total_steps % target_update_steps):
+				if (total_steps % target_update_steps):
 					self._copy_model_to_target()
 
 				# Add up rewards so far
