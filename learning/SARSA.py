@@ -151,7 +151,8 @@ class SARSA(object):
 		return r_hist, step_total, s_hist, a_hist
 
 	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.1, 
-			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000, reward_threshold=180):
+			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000, reward_threshold=180,
+			  model_logging=False, folder_name='SARSA_test0'):
 		"""
 		Description of training
 		"""
@@ -180,6 +181,13 @@ class SARSA(object):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
 		line,  = ax.plot(0,0,'r-')
+
+		# Create folder for saving models
+		folder_path = folder_name
+		if not os.path.exists(folder_path):
+			self._log_model_details(folder_path, episodes, steps, minibatch_size, lin_anneal_frac,
+									random_eps_frac, target_update_steps, epsilon_range)
+			os.makedirs(folder_path)
 
 		for episode in tqdm(range(episodes), desc="training"):
 			# Reset the environment
@@ -237,6 +245,10 @@ class SARSA(object):
 			# Plot the most recent reward
 			if episode > 2:
 				self._update_reward_plot(episode, rList, line, fig, ax)
+
+			if model_logging:
+				filename = folder + "/reward_" + rList[episode] + "_episode_" + episode
+				self.save(filename)
 		return rList[:episode]
 
 	def save(self, filename):
@@ -252,3 +264,23 @@ class SARSA(object):
 		fig.canvas.flush_events()
 		axes.set_xlim(0, episode)
 		axes.set_ylim(np.min(rList), np.max(rList))
+
+	def _log_model_details(self, path, episodes, steps, minibatch_size, lin_anneal_frac, 
+						   random_eps_frac, target_update_steps, epsilon_range):
+		filename = "/SARSA_model_details.txt"
+		path = path + filename 
+		with open(path, "w") as text_file:
+    		print("s_size = {}".format(self.s_size), file=text_file)
+    		print("a_size = {}".format(self.a_size), file=text_file)
+			print("h_neurons = {}".format(self.h_neurons), file=text_file)
+			print("Discount factor (y) = {}".format(self.y), file=text_file)
+			print("learning_rate = {}".format(self.learning_rate), file=text_file)
+			print("episodes = {}".format(episodes), file=text_file)
+			print("steps = {}".format(steps), file=text_file)
+			print("replay memory size = {}".format(self.buffer), file=text_file)
+			print("minibatch size = {}".format(minibatch_size), file=text_file)
+			print("linear annealing fraction = {}".format(lin_anneal_frac), file=text_file)
+			print("random episode size = {}".format(random_eps_frac), file=text_file)
+			print("target update steps = {}".format(target_update_steps), file=text_file)
+			print("epsilon range = {}".format(epsilon_range), file=text_file)
+			print("onehot = {}".format(self.onehot), file=text_file)
