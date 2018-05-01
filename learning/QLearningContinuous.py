@@ -210,53 +210,53 @@ if __name__ == "__main__":
 
 	grid_size = 4
 	# env = gym.make("FrozenLake8x8NotSlippery-v0")
-	env = gym.make("FrozenLakeNotSlippery-v0")
-	# env = gym.make('CartPole-v0')
+	# env = gym.make("FrozenLakeNotSlippery-v0")
+	env = gym.make('CartPole-v0')
 	# env = gym.make('Blackjack-v0')
 	a_size = env.action_space.n
 	# s_size = env.observation_space.n
 	# s_size = np.shape(env.observation_space)[0]
-	s_size = 16
-	# s_size = 4
+	# s_size = 16
+	s_size = 4
 	# print("Calling QLearnContinuous...")
 	print("Calling SARSA...")
 	# QL = QLearnContinuous(s_size, a_size, [128], onehot=False)
-	# QL = SARSA(s_size, a_size, hneurons=[24 24], replay_buffer=10000)
+	QL = SARSA(s_size, a_size, hneurons=[24, 24], replay_buffer=10000)
 	# QL = QLearnContinuous(s_size, a_size, hneurons=[16], onehot=True)
-	QL = SARSA(s_size, a_size, hneurons=[16], onehot=True, replay_buffer=750)
+	# QL = SARSA(s_size, a_size, hneurons=[16], onehot=True, replay_buffer=750)
 	# QL = DQN(s_size, a_size, hneurons=[16], onehot=True, replay_buffer=750)
 	# print("Qlearner initialized.")
 	print("SARSA learner initialized")
-	# QL.load('QCartPole_3000_166')
+	# QL.load('QCartPole_SARSA')
 	# rList = QL.train(env, epochs=500, steps=50, buffer=750, batch_size=32, y=0.99)
-	rList = QL.train(env, episodes=500, steps=50, target_update_steps=1, y=0.99, random_eps_frac=0.2)
+	rList = QL.train(env, episodes=3000, steps=201, target_update_steps=100, y=0.99, random_eps_frac=0.25)
 	print("done training.")
-	QL.save('QLake4x4_SARSA')
+	QL.save('QCartPole_SARSA')
 	print()
 	env.reset()
 	plt.figure()
-	plt.xlabel('epochs')
+	plt.xlabel('episodes')
 	plt.ylabel('rewards')
 	plt.plot(rList)
-	plt.savefig('QLake4x4_SARSA.png')
+	plt.savefig('QCartPole_SARSA.png')
 	plt.show()
 
-	env.render()
+	# env.render()
 	print()
 
-	for i in range(grid_size):
-		row = list()
-		for j in range(grid_size):
-			s = to_categorical(grid_size*i + j, s_size)
-			a = QL.action(s, 0)
-			direct = print_direction(a)
-			row.append(direct)
-		print('{}'.format(row))
+	# for i in range(grid_size):
+	# 	row = list()
+	# 	for j in range(grid_size):
+	# 		s = to_categorical(grid_size*i + j, s_size)
+	# 		a = QL.action(s, 0)
+	# 		direct = print_direction(a)
+	# 		row.append(direct)
+	# 	print('{}'.format(row))
 
 	# Test the trained QLearner
-	# runs = 1
+	runs = 10
 	# rewards, num_steps = QL.simulate(env, epochs=runs, steps=100, pause=0.5, render=True)
-	# rewards, num_steps = QL.simulate(env, episodes=runs, steps=100, pause=0.5, render=True)
+	rewards, num_steps, _, __  = QL.simulate(env, episodes=runs, steps=100, pause=0.02, render=True)
 	# rewards = np.array(rewards)
 	# num_steps = np.array(num_steps)
 	# sum_rewards = np.sum(rewards == 1)
@@ -265,4 +265,4 @@ if __name__ == "__main__":
 	# print("In {} test runs, the learner won at blackjack {} percent of the time.".format(runs, (sum_rewards/runs)*100))
 	# print("{} percent of games were draws.".format(100*sum_draws/runs))
 	# print("{} percent of the games were losses".format(100*sum_losses/runs))
-	# print("In {} simulation runs, the average number of steps was {}".format(runs,np.mean(num_steps)))
+	print("In {} simulation runs, the average number of steps was {}".format(runs,np.mean(num_steps)))

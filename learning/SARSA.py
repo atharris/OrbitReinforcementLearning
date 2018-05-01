@@ -151,7 +151,7 @@ class SARSA(object):
 		return r_hist, step_total, s_hist, a_hist
 
 	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.1, 
-			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000):
+			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000, reward_threshold=180):
 		"""
 		Description of training
 		"""
@@ -175,6 +175,12 @@ class SARSA(object):
 		# Initialize a list of rewards
 		rList = np.zeros(episodes)
 
+		# Initialize reward plot
+		plt.ion()
+		fig = plt.figure()
+		ax = fig.add_subplot(111)
+		line,  = ax.plot(0,0,'r-')
+
 		for episode in tqdm(range(episodes), desc="training"):
 			# Reset the environment
 			s = env.reset()
@@ -182,6 +188,12 @@ class SARSA(object):
 				s = to_categorical(s, num_classes=self.s_size)
 			s = np.array(s)
 			a = self.action(s, epsilon)
+
+			# Check for convergence
+			if episode > 25
+				avg = np.mean(rList[episode-25:episode])
+				if avg > reward_threshold:
+					break
 
 			# Run one episode and train the SARSA learner
 			for step in range(steps):
@@ -222,10 +234,21 @@ class SARSA(object):
 				if (epsilon > epsilon_range[1]):
 					epsilon -= 1/(lin_anneal_frac*episodes)
 
-		return rList
+			# Plot the most recent reward
+			if episode > 2:
+				self._update_reward_plot(episode, rList, line, fig, ax)
+		return rList[:episode]
 
 	def save(self, filename):
 		self.model.save(filename)
 
 	def load(self, filename):
 		self.model = load_model(filename)
+
+	def _update_reward_plot(self, episode, rList, line, fig, axes):
+		line.set_xdata(range(episode))
+		line.set_ydata(rList[:episode])
+		fig.canvas.draw()
+		fig.canvas.flush_events()
+		axes.set_xlim(0, episode)
+		axes.set_ylim(np.min(rList), np.max(rList))
