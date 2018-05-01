@@ -25,6 +25,7 @@ class SARSA(object):
 		self.replay = []
 		self.learning_rate = lr
 		self.buffer = replay_buffer
+		self.hneurons = hneurons
 		# Create the initial value function (Q) model
 		self._make_model(hneurons)
 		self.ii_mem = 0 # for the _remember function
@@ -185,9 +186,9 @@ class SARSA(object):
 		# Create folder for saving models
 		folder_path = folder_name
 		if not os.path.exists(folder_path):
+			os.makedirs(folder_path)
 			self._log_model_details(folder_path, episodes, steps, minibatch_size, lin_anneal_frac,
 									random_eps_frac, target_update_steps, epsilon_range)
-			os.makedirs(folder_path)
 
 		for episode in tqdm(range(episodes), desc="training"):
 			# Reset the environment
@@ -198,7 +199,7 @@ class SARSA(object):
 			a = self.action(s, epsilon)
 
 			# Check for convergence
-			if episode > 25
+			if episode > 25:
 				avg = np.mean(rList[episode-25:episode])
 				if avg > reward_threshold:
 					break
@@ -247,7 +248,7 @@ class SARSA(object):
 				self._update_reward_plot(episode, rList, line, fig, ax)
 
 			if model_logging:
-				filename = folder + "/reward_" + rList[episode] + "_episode_" + episode
+				filename = folder_path + "/" + "episode_" + "{0:0>5}".format(episode) + "_model_reward_" + str(rList[episode])
 				self.save(filename)
 		return rList[:episode]
 
@@ -270,9 +271,9 @@ class SARSA(object):
 		filename = "/SARSA_model_details.txt"
 		path = path + filename 
 		with open(path, "w") as text_file:
-    		print("s_size = {}".format(self.s_size), file=text_file)
-    		print("a_size = {}".format(self.a_size), file=text_file)
-			print("h_neurons = {}".format(self.h_neurons), file=text_file)
+			print("s_size = {}".format(self.s_size), file=text_file)
+			print("a_size = {}".format(self.a_size), file=text_file)
+			print("hidden layers = {}".format(self.hneurons), file=text_file)
 			print("Discount factor (y) = {}".format(self.y), file=text_file)
 			print("learning_rate = {}".format(self.learning_rate), file=text_file)
 			print("episodes = {}".format(episodes), file=text_file)
