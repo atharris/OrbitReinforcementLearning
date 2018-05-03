@@ -14,7 +14,7 @@ from gym.envs.registration import register
 
 class SARSA(object):
 
-	def __init__(self, s_size, a_size, hneurons=[10,10], onehot=False, lr=0.00025, replay_buffer=10000):
+	def __init__(self, s_size, a_size, hneurons=[10,10], onehot=False, lr=0.00025, replay_buffer=10000, loss='SARSA'):
 		"""
 		Initialize state and action space lengths.  State size is the size of the
 		neural net's input layer and the action size is the size of the net ouput
@@ -30,6 +30,7 @@ class SARSA(object):
 		self._make_model(hneurons)
 		self.ii_mem = 0 # for the _remember function
 		self.onehot = onehot
+		self.loss = loss
 		return
 
 	def _make_model(self, hneurons, dropout=0, activ_fun='relu'):
@@ -102,8 +103,18 @@ class SARSA(object):
 			if done:
 				target = r
 			else:
-				# SARSA model target update step
-				target = r + self.y*newQ[0][a1]
+				if self.loss == 'SARSA':
+					# SARSA model target update step
+					target = r + self.y*newQ[0][a1]
+				elif self.loss == 'DQN':
+					# DQN model target update step
+					target = r + self.y*np.max(newQ)
+				elif self.loss == 'DDQN':
+					newQ_ddqn = self.model.predict(s.reshape(1,self.s_size))
+					a1_ddqn = np.argmax(newQ_ddqn[0])
+					target = r + self.y*newQ[0][a1_ddqn]
+					# Double DQN model target update step
+
 			y[0][a] = target
 			X_train.append(s)
 			y_train.append(y.reshape(self.a_size,))
@@ -137,7 +148,7 @@ class SARSA(object):
 				if self.onehot:
 					s1 = to_categorical(s1, num_classes=self.s_size)
 				s1 = np.array(s1)
-				a1 = self.action(s, epsilon)
+				a1 = self.action(s1, epsilon)
 				if remember:
 					self._remember([s, a, r, s1, a1, done])
 				s = s1
@@ -153,7 +164,7 @@ class SARSA(object):
 
 	def train(self, env, episodes=1000, steps=100, render=False, epsilon_range=[1.0, 0.1], random_eps_frac=.1, 
 			  lin_anneal_frac=.2, minibatch_size=32, y=0.99, target_update_steps=5000, reward_threshold=180,
-			  model_logging=False, folder_name='SARSA_test0'):
+			  model_logging=False, folder_name='SARSA_test0', converge_eps=50):
 		"""
 		Description of training
 		"""
@@ -187,8 +198,6 @@ class SARSA(object):
 		folder_path = folder_name
 		if not os.path.exists(folder_path):
 			os.makedirs(folder_path)
-			self._log_model_details(folder_path, episodes, steps, minibatch_size, lin_anneal_frac,
-									random_eps_frac, target_update_steps, epsilon_range)
 
 		for episode in tqdm(range(episodes), desc="training"):
 			# Reset the environment
@@ -199,8 +208,8 @@ class SARSA(object):
 			a = self.action(s, epsilon)
 
 			# Check for convergence
-			if episode > 25:
-				avg = np.mean(rList[episode-25:episode])
+			if episode > converge_eps:
+				avg = np.mean(rList[episode-converge_eps:episode])
 				if avg > reward_threshold:
 					break
 
@@ -250,6 +259,8 @@ class SARSA(object):
 			if model_logging:
 				filename = folder_path + "/" + "episode_" + "{0:0>5}".format(episode) + "_model_reward_" + str(rList[episode])
 				self.save(filename)
+				self._log_model_details(folder_path, episodes, steps, minibatch_size, lin_anneal_frac,
+									random_eps_frac, target_update_steps, epsilon_range, episode)
 		return rList[:episode]
 
 	def save(self, filename):
@@ -266,8 +277,8 @@ class SARSA(object):
 		axes.set_xlim(0, episode)
 		axes.set_ylim(np.min(rList), np.max(rList))
 
-	def _log_model_details(self, path, episodes, steps, minibatch_size, lin_anneal_frac, 
-						   random_eps_frac, target_update_steps, epsilon_range):
+	def _log_model_details(self, path, max_episodes, steps, minibatch_size, lin_anneal_frac, 
+						   random_eps_frac, target_update_steps, epsilon_range, episodes):
 		filename = "/SARSA_model_details.txt"
 		path = path + filename 
 		with open(path, "w") as text_file:
@@ -276,8 +287,9 @@ class SARSA(object):
 			print("hidden layers = {}".format(self.hneurons), file=text_file)
 			print("Discount factor (y) = {}".format(self.y), file=text_file)
 			print("learning_rate = {}".format(self.learning_rate), file=text_file)
-			print("episodes = {}".format(episodes), file=text_file)
-			print("steps = {}".format(steps), file=text_file)
+			print("max episodes = {}".format(max_episodes), file=text_file)
+			print("episodes = {}".format(episodes), text_file)
+			print("max steps = {}".format(steps), file=text_file)
 			print("replay memory size = {}".format(self.buffer), file=text_file)
 			print("minibatch size = {}".format(minibatch_size), file=text_file)
 			print("linear annealing fraction = {}".format(lin_anneal_frac), file=text_file)
